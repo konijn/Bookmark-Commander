@@ -1,0 +1,477 @@
+<!-- 
+  Bookmark Commander by Tom J Demuyt is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+  Permissions beyond the scope of this license are available by contacting konijn@gmail.com
+ -->
+<!DOCTYPE hmtl>
+<html>
+ <head>
+  <title> Bookmark Commander </title>
+
+  <meta http-equiv="content-type" content="text/html; charset=utf8">
+
+  <meta name="Author" content="Tom J Demuyt">
+  <meta name="Keywords" content="Bookmarks">
+
+  <script type="text/javascript" src="jquery.1.6.js"></script> 
+  
+  <script type="text/javascript" src="bc.js"></script> 
+  <link type="text/css" rel="stylesheet" href="bc.css" />   
+  
+ </head>
+<SCRIPT LANGUAGE="JavaScript">
+
+  var screenwidth = 120;
+  var panelwidth  = ( screenwidth - 4 ) / 2
+  var panelheight = 30
+  
+  
+
+
+</SCRIPT>
+ <body style="font-family: Vera;">
+
+<!-- These codes were retrieved from http://www.utf8-chartable.de/unicode-utf8-table.pl ( box drawing ) 
+ ┌─┬─┐  ╔═╦═╗
+ ├─┼─┤  ╠═╬═╣
+ │ │ │  ║ ║ ║
+ └─┴─┘  ╚═╩═╝
+ -->
+
+<pre>
+<script>
+
+    //Menu
+	  document.writeln( "<span class='menu'>" + ("  Left     File     Command     Options     Right").extend() + "</span>" );
+	  //Box Top
+    document.writeln( "<span class='border'><span id='h1'>" + ( "╔" + "═".repeat(panelwidth) + "╗").repeat(2) + "</span>" ); //Missing span here !, it's below now
+
+    //Entries
+    for( var counter = 0 ; counter < panelheight ; counter++ )
+    {
+      document.write(   "║<span id='left" + counter + "' class='border'>" + " ".repeat(panelwidth) + "</span>║" ); 
+      document.writeln( "║<span id='rite" + counter + "' class='border'>" + " ".repeat(panelwidth) + "</span>║" ); 
+    }
+
+    //Box Bottom
+    document.writeln(  "<span id='h2'>╠" + "═".repeat(panelwidth) + "╩╩" + "═".repeat(panelwidth) + "╣</span>" ); 
+    document.writeln(  "║<span id='url'>" + " ".repeat((panelwidth+1)*2) + "</span>║" ); 
+    document.writeln(  "<span id='h3'>╚" + "═".repeat((panelwidth+1)*2) + "╝" + "</span></span>" ); 
+
+    var function_keys = 
+    [
+      { id : 1 ,  description : "Help  " },
+      { id : 2 ,  description : "Menu  " },
+      { id : 3 ,  description : "View  " },
+      { id : 4 ,  description : "Edit  " },
+      { id : 5 ,  description : "Copy  " },
+      { id : 6 ,  description : "Move  " },
+      { id : 7 ,  description : "Mkdir " },
+      { id : 8 ,  description : "Delete" },
+      { id : 9 ,  description : "PullDn" },
+      { id : 10 , description : "Quit  " },
+    ];
+
+
+    for( key in function_keys )
+    {
+      var f = function_keys[key];
+      document.write( "<span class='fcode'>F" + f.id + "<span class='menu'>" + f.description + "<span class='fcode'> " );
+    }
+    document.writeln( "<span id='end' class='fcode'>" + " ".repeat( screenwidth - 91 ) + "</span>" );
+
+</script>
+
+</body>
+
+<script>
+
+var commander   = {};
+
+$(document).ready(function () {
+
+  commander.left  = { id : "0" , selected : 0  , scroll : 0 , active : true  , prefix : "left" };
+  commander.right = { id : "0" , selected : 0  , scroll : 0 , active : false , prefix : "rite" };
+  commander.bookmarks = {};
+
+  commander.setPanel = function( panelConfig )
+  {
+    var o = findBookmarkId( commander.bookmarks , panelConfig.id );
+
+    //Are we clear ?
+    if( !document.getElementById("end") )
+      return;
+
+    //Deal with trouble
+    if( !o || !o.children )
+    {
+      //If we are looking at a dead folder by any chance, just go to the root
+      if( panelConfig.id != "0" )
+      {
+        panelConfig.id = "0";
+        commander.setPanel( panelConfig );
+        return;
+      }
+      else
+      {
+        alert("Bookmark Commander regrets to inform you that it cannot display your bookmarks,\n please hit refresh and try again.");
+      }
+    }
+
+
+    //Clear out the children
+    for( var counter = 0 ; counter < panelheight ; counter++ )
+    {
+      document.getElementById( panelConfig.prefix + counter ).innerHTML = ( " ".repeat(panelwidth) );
+      document.getElementById( panelConfig.prefix + counter ).setAttribute("class", "border" );
+    }
+
+    //We merely do this to facilitate the following trick
+    var children = [].concat( o.children );
+
+    //Do we have a parent ?, if so top the entries with '..'
+    if( o.parentId )
+    {
+      children.reverse();
+      children.push( { children: true , title : ".." , id : o.parentId } );
+      children.reverse();
+    }
+
+    //Other parties are interested in how many items there really are
+    panelConfig.itemcount = children.length;
+
+    //Keep counter post-loop for sanity checks
+    var counter;
+
+    //Go over the children ( folders + bookmarks )
+    for( counter = 0; counter < panelheight && counter < children.length ;counter++)
+    {
+      //Get the child
+      var child  = children[counter+panelConfig.scroll];
+      //Default bookmark prefix and style
+      var prefix = " ";
+      var style  = "border";
+
+      //If there are no children though, take out the slash
+      if( child.children )
+        prefix = "/";
+
+      //Are we looking at a javascript ?
+      if( child.url && child.url.startsWith( "javascript" ) )
+        style = "js"
+
+      //If we look at the selected one the style is different
+      if( counter == panelConfig.selected && panelConfig.active )
+      {
+        style = "selected"
+        //Lets also show the url
+        if( child.url )
+        {
+          var url = child.url.left( ((panelwidth+1)*2) ).extend( (panelwidth+1)*2 );
+          document.getElementById( "url" ).innerHTML = url;
+        }
+        else
+        {
+          document.getElementById( "url" ).innerHTML = " ".repeat((panelwidth+1)*2);
+        }
+      }
+
+      //Get the element
+      var element = document.getElementById( panelConfig.prefix + counter );
+    
+      //set the style
+      element.setAttribute("class", style );
+
+      //Set the content
+      element.innerHTML =  ( prefix + child.title ).extend( panelwidth );
+
+      //Set the new index
+      element.commander = { id : child.id };
+    }
+    //Since speed is of no concern, I just redraw the screen if we missed the selected item due to deletion ;)
+    if( panelConfig.selected >= counter )
+      commander.end();
+
+  }
+  /* HELPER, DRAW IT */
+  commander.draw = function()
+  {
+    commander.setPanel( commander.left );
+    commander.setPanel( commander.right );
+  }
+
+  /* TAB, SWAP */
+  commander.swapPanel = function()
+  {
+    commander.left.active  = !commander.left.active;
+    commander.right.active = !commander.right.active;
+    commander.draw();
+  }
+
+  /* Prelude to SELECT, ENTER */
+  commander.delve = function()
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+  
+    var id = document.getElementById( panel.prefix + panel.selected ).commander.id;
+  
+    commander.select( id );
+  }
+
+  /* SELECT, ENTER */
+  commander.select = function( index )
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+
+    //Do we want to select this for real ?
+    var bookmark = findBookmarkId( commander.bookmarks , index );
+    //Go deeper if its a folder, or as the case may be, higher
+    if( bookmark.children )
+    {
+      panel.id = index;
+      panel.selected = 0;
+      commander.draw();
+    }
+    //Open if its a bookmark
+    else if( bookmark.url && bookmark.url.startsWith( [ "http" , "file" ] ) )
+    {
+      chrome.tabs.create( { 'url': bookmark.url }, null );
+    }
+    //Yes, do nuttin if its js, them evil hackers cannought be trusted
+  }
+
+  /* HELP */
+  commander.help = function()
+  {
+    chrome.tabs.create( {'url': chrome.extension.getURL('help.html')}, null );
+  }
+
+  /* QUIT */
+  commander.quit = function()
+  {
+    chrome.tabs.getCurrent( function( tab ) { chrome.tabs.remove( tab.id ) } );
+  }
+
+  /* BACKSPACE */
+  commander.back = function()
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+  
+    var element = document.getElementById( panel.prefix + "0" );
+    var text = jQuery.trim( element.innerHTML );
+
+    if( text == "/.." )
+      commander.select( element.commander.id );
+  }
+
+  /* DOWN */
+  commander.down = function()
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+
+    if( panel.selected == panelheight-1  )
+      panel.scroll++;
+    else
+      panel.selected++;
+
+    if( !(panel.scroll + panel.selected < panel.itemcount) )
+      commander.end();
+
+    commander.draw();
+  }
+
+  /* UP */
+  commander.up = function()
+  {
+    //Get active panel
+    var panel = commander.left.active ? commander.left : commander.right;
+    //if we are already physically in slot 0, see if we can still scroll up
+    //Otherwise go up a physical slot
+    if( panel.selected == 0 )
+      panel.scroll--;
+    else
+      panel.selected--;
+    //Sanity fix the scroll value
+    if( panel.scroll == -1 )
+      panel.scroll = 0
+    //Draw the commander again
+    commander.draw();
+  }
+
+  /* HOME */
+  commander.home = function()
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+    panel.selected = 0;
+    panel.scroll = 0;
+    commander.draw();
+  }
+
+  /* END */
+  commander.end = function()
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+
+    if( panel.itemcount < panelheight+1 )
+    {
+      panel.scroll = 0;
+      panel.selected = panel.itemcount-1;
+    }
+    else
+    {
+      panel.scroll = panel.itemcount - panelheight;
+      panel.selected = panelheight-1;
+    }
+    commander.draw();
+  }
+
+  /* COPY */
+  commander.copy = function()
+  {
+    var from =  commander.left.active ? commander.left : commander.right;
+    var to   = !commander.left.active ? commander.left : commander.right;
+  
+    if( to.id == "0" )
+    {
+      alert( "Can not copy bookmarks into the root" )
+      return
+    }
+  
+    //Copying from
+    var from_id  = document.getElementById( from.prefix + from.selected ).commander.id;
+    var bookmark = findBookmarkId( commander.bookmarks , from_id );
+
+    var newbookmark = { parentId : to.id };
+    //Create the bookmark object
+    if( bookmark.title )
+      newbookmark.title = bookmark.title;
+    if( bookmark.url )
+      newbookmark.url = bookmark.url;
+
+    chrome.bookmarks.create( newbookmark , bootCommander );
+  }
+
+  /* MOVE */
+  commander.move = function()
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+    var id  = document.getElementById( panel.prefix + panel.selected ).commander.id;
+    var bookmark = findBookmarkId( commander.bookmarks , id );
+
+    var to   = !commander.left.active ? commander.left : commander.right;
+
+    if( to.id == "0" )
+    {
+      alert( "Can not copy bookmarks into the root" )
+      return false
+    }
+   
+    chrome.bookmarks.move( bookmark.id, { parentId  : to.id }  , bootCommander );
+  }
+
+  /* DELETE */
+  commander.delete = function()
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+    var id  = document.getElementById( panel.prefix + panel.selected ).commander.id;
+    var bookmark = findBookmarkId( commander.bookmarks , id );
+
+    //What is interesting, is that removeTree works on non-trees as well
+    //I am not going to count on that though ;]
+    if( bookmark.children )
+      chrome.bookmarks.removeTree( bookmark.id , bootCommander );
+    else
+      chrome.bookmarks.remove( bookmark.id , bootCommander );
+  }
+
+  /* CREATE FOLDER */
+  commander.createfolder = function()
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+    var foldertext = prompt("Enter folder name","");
+
+    if(foldertext)
+    {
+      var newbookmark = { parentId : panel.id , title : foldertext };
+      chrome.bookmarks.create( newbookmark , bootCommander );
+    }  
+  }
+
+  /* MOVE UP */
+  commander.moveup = function()
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+    var id  = document.getElementById( panel.prefix + panel.selected ).commander.id;
+    var bookmark = findBookmarkId( commander.bookmarks , id );
+
+    if( bookmark.index == 0 )
+      return;
+    
+    chrome.bookmarks.move( id, { parentId: panel.id , index : (bookmark.index-1)   }  , bootCommander );
+  
+  }
+
+
+  /* INIT, RE-INIT */
+  function bootCommander()
+  {
+    chrome.bookmarks.getTree( function(stuff)
+    { 
+      commander.bookmarks = stuff ;
+      commander.draw();
+    });
+  }
+  bootCommander()
+  
+  /* EVIL Mac Fix */
+  if( navigator.userAgent.has( "Mac" ) )
+  {
+	//Replace ═ with =, cause silly Mac OS
+	$("#h1").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
+	$("#h2").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });  
+  	$("#h3").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
+  }
+  
+  
+
+  //Key mapping
+  key_mapping = {};
+  key_mapping[8 ] = commander.back;      //backspace
+  key_mapping[9 ] = commander.swapPanel; //tab
+  key_mapping[13] = commander.delve;     //enter
+  key_mapping[40] = commander.down;      //Arrow Down
+  key_mapping[38] = commander.up;        //Arrow Up
+  key_mapping[36] = commander.home;
+  key_mapping[35] = commander.end;
+  key_mapping[112] = commander.help;
+  key_mapping[121] = commander.quit;
+  key_mapping[116] = commander.copy;
+  key_mapping[117] = commander.move;
+  key_mapping[118] = commander.createfolder;
+  key_mapping[119] = commander.delete;
+  key_mapping[107] = commander.moveup;
+  key_mapping[187] = commander.moveup;
+  key_mapping[109] = commander.moveup;
+  key_mapping[189] = commander.moveup;
+
+  control_key_mapping = {}
+  control_key_mapping[79] = commander.showLogs;
+
+  $(document).keydown( function( event )
+  {
+    document.getElementById("end").innerHTML = ("Key: " + event.which).extend( screenwidth - 91 );
+
+    if( key_mapping[ event.which ] )
+    {
+      key_mapping[ event.which ]();
+      return false;
+    }
+    return true;
+  });
+
+});
+
+
+</script>
+
+
+</html>

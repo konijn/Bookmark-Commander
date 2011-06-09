@@ -1,0 +1,22 @@
+/* 
+  Bookmark Commander by Tom J Demuyt is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+  Permissions beyond the scope of this license are available by contacting konijn@gmail.com
+*/
+{
+  "name": "Bookmark Commander",
+  "version": "1.0",
+  "description": "Commanding Bookmarks, Old Skool",
+  "background_page": "background.html",
+  "icons": {
+    "48" : "bc-48x48.gif",
+    "128": "bc-128x128.gif",
+  },
+  "browser_action": {
+    "default_title": "Manage Bookmarks",
+	  "default_icon" : "bc-32x32.png"
+  },
+  "permissions": [
+    "bookmarks",
+    "tabs"
+  ]
+}

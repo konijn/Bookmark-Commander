@@ -1,0 +1,48 @@
+//Bookmark Commander by Tom J Demuyt is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+//Permissions beyond the scope of this license are available by contacting konijn@gmail.com
+
+  //  bluegreen : rgb(   0, 128, 128 )
+  //  black     : rgb(   0,   0,   0 )
+  //  grey      : rgb( 192, 192, 192 )
+
+	//Link to Vera
+  @font-face 
+  {
+    font-family: "Vera";
+    src: url(VeraMono.ttf) format("truetype");
+  }
+
+	.border
+	{
+      //font-family: Vera;
+	  color: rgb(192,192,192);
+	  background: rgb(0,0,128);
+	}
+	
+	.menu
+	{
+	  //font-family: Vera;
+	  color: rgb(0,0,0);
+	  background: rgb(0,128,128);
+	}
+
+	.selected
+	{
+	  //font-family: Vera;
+	  color: rgb(0,0,0);
+	  background: rgb(0,128,128);
+	}
+
+	.js
+	{
+	  //font-family: Vera;
+	  color: rgb(0,255,0);
+	  background: rgb(0,0,128);
+	}
+
+  .fcode
+  {
+    //font-family: Vera;
+	color: rgb(192,192,192);
+    background: rgb(0,0,0);
+  }
