@@ -15,6 +15,7 @@
   <script type="text/javascript" src="jquery.1.6.js"></script> 
   
   <script type="text/javascript" src="bc.js"></script> 
+  <script type="text/javascript" src="viewer.js"></script> 
   <link type="text/css" rel="stylesheet" href="bc.css" />   
   
  </head>
@@ -92,6 +93,8 @@ $(document).ready(function () {
   commander.left  = { id : "0" , selected : 0  , scroll : 0 , active : true  , prefix : "left" };
   commander.right = { id : "0" , selected : 0  , scroll : 0 , active : false , prefix : "rite" };
   commander.bookmarks = {};
+  commander.viewing = false;
+  commander.editing = false;
 
   commander.setPanel = function( panelConfig )
   {
@@ -229,6 +232,7 @@ $(document).ready(function () {
     {
       panel.id = index;
       panel.selected = 0;
+      panel.scroll = 0;
       commander.draw();
     }
     //Open if its a bookmark
@@ -250,6 +254,27 @@ $(document).ready(function () {
   {
     chrome.tabs.getCurrent( function( tab ) { chrome.tabs.remove( tab.id ) } );
   }
+
+  /* VIEW */
+  commander.view = function()
+  {
+    //chrome.tabs.getCurrent( function( tab ) { chrome.tabs.remove( tab.id ) } );
+    //alert( chrome.extension.getURL('box.html') );
+    //window.location.href = chrome.extension.getURL('box.html');
+
+    commander.viewing = !commander.viewing;
+
+    if( commander.viewing )
+    {
+      commander.backup = document.body.innerHTML;
+      document.body.innerHTML = writeViewerHTML( 0 );
+    }
+    else
+    {
+      document.body.innerHTML = commander.backup;
+    }
+  }
+
 
   /* BACKSPACE */
   commander.back = function()
@@ -396,18 +421,57 @@ $(document).ready(function () {
     }  
   }
 
-  /* MOVE UP */
+  /* PLUS , MOVE UP */
   commander.moveup = function()
   {
     var panel = commander.left.active ? commander.left : commander.right;
     var id  = document.getElementById( panel.prefix + panel.selected ).commander.id;
     var bookmark = findBookmarkId( commander.bookmarks , id );
 
+    if( panel.id == 0 )
+      return;
+
+    if( panel.selected == 0 && panel.scroll == 0 )
+      return;
+
     if( bookmark.index == 0 )
       return;
     
+    if( panel.selected == 0 )
+      panel.scroll--;
+    else
+      panel.selected--;
+
     chrome.bookmarks.move( id, { parentId: panel.id , index : (bookmark.index-1)   }  , bootCommander );
   
+  }
+
+  /* DOWN, MOVE DOWN */
+  commander.movedown = function()
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+    var id  = document.getElementById( panel.prefix + panel.selected ).commander.id;
+    var bookmark = findBookmarkId( commander.bookmarks , id );
+
+    if( panel.id == 0 )
+      return;
+
+    if( panel.selected == 0 && panel.scroll == 0 )
+      return;
+
+    //no see who is under their
+    var parent   = findBookmarkId( commander.bookmarks , panel.id );
+    var bookmark = parent.children[ bookmark.index+1 ];
+    if( bookmark )
+    {
+      //We are evilly counting on the 'hmmm I think this got deleted feature', muhaha is in order
+      if( panel.selected == panelheight-1 )
+        panel.scroll++;
+      else
+        panel.selected++;
+
+      chrome.bookmarks.move( bookmark.id , { parentId: panel.id , index : (bookmark.index-1)   }  , bootCommander );
+    }
   }
 
 
@@ -435,23 +499,24 @@ $(document).ready(function () {
 
   //Key mapping
   key_mapping = {};
-  key_mapping[8 ] = commander.back;      //backspace
-  key_mapping[9 ] = commander.swapPanel; //tab
-  key_mapping[13] = commander.delve;     //enter
-  key_mapping[40] = commander.down;      //Arrow Down
-  key_mapping[38] = commander.up;        //Arrow Up
-  key_mapping[36] = commander.home;
-  key_mapping[35] = commander.end;
-  key_mapping[112] = commander.help;
-  key_mapping[121] = commander.quit;
-  key_mapping[116] = commander.copy;
-  key_mapping[117] = commander.move;
-  key_mapping[118] = commander.createfolder;
-  key_mapping[119] = commander.delete;
-  key_mapping[107] = commander.moveup;
-  key_mapping[187] = commander.moveup;
-  key_mapping[109] = commander.moveup;
-  key_mapping[189] = commander.moveup;
+  key_mapping[8 ] = commander.back;           //backspace
+  key_mapping[9 ] = commander.swapPanel;      //tab
+  key_mapping[13] = commander.delve;          //enter
+  key_mapping[40] = commander.down;           //Arrow Down
+  key_mapping[38] = commander.up;             //Arrow Up
+  key_mapping[36] = commander.home;           //Home key
+  key_mapping[35] = commander.end;            //End key
+  key_mapping[112] = commander.help;          //F1
+  key_mapping[114] = commander.view;          //F2
+  key_mapping[116] = commander.copy;          //F5
+  key_mapping[117] = commander.move;          //F6
+  key_mapping[118] = commander.createfolder;  //F7
+  key_mapping[119] = commander.delete;        //F8
+  key_mapping[121] = commander.quit;          //F10
+  key_mapping[107] = commander.moveup;        //+ on numeric
+  key_mapping[187] = commander.moveup;        //+ on main
+  key_mapping[109] = commander.movedown;      //- on numeric
+  key_mapping[189] = commander.movedown;      //- on main
 
   control_key_mapping = {}
   control_key_mapping[79] = commander.showLogs;

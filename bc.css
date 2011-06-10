@@ -14,8 +14,15 @@
 
 	.border
 	{
-      //font-family: Vera;
+    //font-family: Vera;
 	  color: rgb(192,192,192);
+	  background: rgb(0,0,128);
+	}
+
+	.blue
+	{
+    //font-family: Vera;
+	  color: rgb(255,255,255);
 	  background: rgb(0,0,128);
 	}
 	
@@ -43,6 +50,26 @@
   .fcode
   {
     //font-family: Vera;
-	color: rgb(192,192,192);
+	  color: rgb(192,192,192);
     background: rgb(0,0,0);
+  }
+
+  textarea
+  {
+
+    -webkit-appearance: textfield;
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
+    border: 0px;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    outline: none;
+    resize: none;
+  }
+
+  ::-webkit-scrollbar
+  { 
+    height: 0px; 
+    width: 0px; 
+    background-color: inherit;
   }
