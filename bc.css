@@ -1,62 +1,34 @@
-//Bookmark Commander by Tom J Demuyt is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
-//Permissions beyond the scope of this license are available by contacting konijn@gmail.com
+/*Bookmark Commander by Tom J Demuyt is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+  Permissions beyond the scope of this license are available by contacting konijn@gmail.com
 
-  //  bluegreen : rgb(   0, 128, 128 )
-  //  black     : rgb(   0,   0,   0 )
-  //  grey      : rgb( 192, 192, 192 )
+  Basic Colors :
+  bluegreen : rgb(   0, 128, 128 )
+  black     : rgb(   0,   0,   0 )
+  grey      : rgb( 192, 192, 192 )
+  blue      : rgb(   0,   0, 128 )
+*/
 
-	//Link to Vera
-  @font-face 
+  //Link to Vera
+  @font-face
   {
     font-family: "Vera";
     src: url(VeraMono.ttf) format("truetype");
   }
 
-	.border
-	{
-    //font-family: Vera;
-	  color: rgb(192,192,192);
-	  background: rgb(0,0,128);
-	}
+  /*Can you tell I like ordered tables in my code ;] */
 
-	.blue
-	{
-    //font-family: Vera;
-	  color: rgb(255,255,255);
-	  background: rgb(0,0,128);
-	}
-	
-	.menu
-	{
-	  //font-family: Vera;
-	  color: rgb(0,0,0);
-	  background: rgb(0,128,128);
-	}
+  .border   { color: rgb(192,192,192); background: rgb(0,0,128);  }
+  .blue     { color: rgb(255,255,255); background: rgb(0,0,128);  }
+  .menu     { color: rgb(0,0,0);       background: rgb(0,128,128);}
+  .selected { color: rgb(0,0,0);       background: rgb(0,128,128);}
+  .js       { color: rgb(0,255,0);     background: rgb(0,0,128);  }
+  .fcode    { color: rgb(192,192,192); background: rgb(0,0,0);    }
 
-	.selected
-	{
-	  //font-family: Vera;
-	  color: rgb(0,0,0);
-	  background: rgb(0,128,128);
-	}
-
-	.js
-	{
-	  //font-family: Vera;
-	  color: rgb(0,255,0);
-	  background: rgb(0,0,128);
-	}
-
-  .fcode
-  {
-    //font-family: Vera;
-	  color: rgb(192,192,192);
-    background: rgb(0,0,0);
-  }
-
+  /* Vera font for textarea's did not work for textarea's b*/
   textarea
   {
-
+    font-family: "Lucida Console", Monaco, monospace;
+    font-size: inherit;
     -webkit-appearance: textfield;
     padding: 0px 0px 0px 0px;
     margin: 0px 0px 0px 0px;
@@ -67,9 +39,10 @@
     resize: none;
   }
 
+  /*Not sure this is required*/
   ::-webkit-scrollbar
-  { 
-    height: 0px; 
-    width: 0px; 
+  {
+    height: 0px;
+    width: 0px;
     background-color: inherit;
   }

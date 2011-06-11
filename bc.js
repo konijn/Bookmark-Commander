@@ -1,4 +1,4 @@
-/* 
+/*
   Bookmark Commander by Tom J Demuyt is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
   Permissions beyond the scope of this license are available by contacting konijn@gmail.com
 */
@@ -47,34 +47,37 @@
 
     return this.substring( 0 , n );
   }
-  
+
   //I hate dealing with -1 so I stick it here
   String.prototype.has = function( s )
   {
-	return ( this.indexOf(s) != -1 );
+  return ( this.indexOf(s) != -1 );
   }
 
-  
+
   //"662"
   //Yes, google provides a search function
   //But I can debug this one
   function findBookmarkId( stuff , id )
   {
     var node;
-	
-	var seek = function( stuff, id )
-	{
-		if( stuff && stuff.id && stuff.id == id )
-			node = stuff;
-		else
-			for(var key in stuff)
-				if( typeof stuff[key] == "object" )
-					seek( stuff[key] , id );
-	}
-	seek( stuff , id );
-							    	
-	return node;
+
+    var seek = function( stuff, id )
+    {
+      if( stuff && stuff.id && stuff.id == id )
+        node = stuff;
+      else
+        for(var key in stuff)
+          if( typeof stuff[key] == "object" )
+            seek( stuff[key] , id );
+    }
+    seek( stuff , id );
+
+    return node;
   }
+
+  //Linking to an external icon due to existing chrome bug
+  //http://code.google.com/p/chromium/issues/detail?id=84373
 
   var iconURL = "http://bc.demuyt.net/mc-32x32.png";
   var link = document.createElement("link");
@@ -83,4 +86,3 @@
   link.href = iconURL;
   //this.docHead.appendChild(link);
   this.document.head.appendChild(link);
-  
