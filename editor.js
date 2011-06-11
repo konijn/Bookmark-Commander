@@ -10,7 +10,7 @@ editor.view = function( id )
     [
       { id : 1 ,  description : "Help  " },
       { id : 2 ,  description : "Save  " },
-      { id : 3 ,  description : "      " },
+      { id : 3 ,  description : "Quit  " },
       { id : 4 ,  description : "Quit  " },
       { id : 5 ,  description : "Test  " },
       { id : 6 ,  description : "      " },
@@ -43,11 +43,14 @@ editor.view = function( id )
 
   editor.id = id;
   editor.bookmark = bookmark;
+  editor.changed = false;
+  editor.saved   = false;
 
+    //Table due to general textarea weirdness
     var s = "<table><tr><td style='background: rgb(0,0,128);'><pre>";
     //Menu
     s = s + ("<span class='menu'>" + ("  Folder/Bookmark").extend() + "</span>\n" );
-
+    //Its a mess, but a short mess ;\
     s = s + "<textarea class='blue' cols='" + editor.width + "' rows='3' id='title'>" + bookmark.title + "</textarea>\n"
     s = s + ("<span class='menu'>" + ("  URL").extend() + "</span>\n" );
     s = s + "<textarea class='blue' cols='" + editor.width + "' rows='24' id='url'" + editor.urlreadonly + ">" + bookmark.url + "</textarea>\n"
@@ -69,6 +72,40 @@ editor.view = function( id )
     title.focus();
     var position = title.value.length * 2;
     title.setSelectionRange(position,position);
+
+}
+
+editor.considerTextAreas = function()
+{
+  var titleElement = document.getElementById( "title" )
+  var   urlElement = document.getElementById( "url" )
+
+  var _changed = false;
+
+  //Consider the title
+  if( titleElement.value != editor.bookmark.title )
+  {
+    _changed = true;
+    titleElement.style.fontStyle = "italic"
+  }
+  else
+  {
+    titleElement.style.fontStyle = "normal"
+  }
+
+   //Consider the url
+  if( urlElement.value != editor.bookmark.url )
+  {
+    _changed = true;
+    urlElement.style.fontStyle = "italic"
+  }
+  else
+  {
+    urlElement.style.fontStyle = "normal"
+  }
+
+  editor.changed = _changed;
+
 }
 
 editor.test = function()
@@ -80,15 +117,31 @@ editor.save = function()
 {
   var o = { title : document.getElementById( "title" ).value };
 
-  var url = document.getElementById( "title" ).value
+  var url = document.getElementById( "url" ).value.trim();
+
+  if( url.length > 0 )
+    o.url = url;
+
+  chrome.bookmarks.update( editor.id, o );
+
+  editor.saved = true;
+
+  document.getElementById("end").innerHTML = ( "<span style='color: yellow'>" + ("SAVED!").extend( screenwidth - 91 ) + "</span>");
+
+  editor.bookmark = o;
 
 }
 
 editor.quit = function()
 {
-      document.body.innerHTML = commander.backup;
-    //we require it for decorating the elements, kludgy, I know
-    commander.draw();
+    document.body.innerHTML = commander.backup;
+
+    if( editor.saved )
+      commander.boot();
+    else
+      commander.draw();
+
     key_mapping = commander.key_mapping;
+    commander.editing = false;
 }
 

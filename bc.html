@@ -1,4 +1,4 @@
-<!-- 
+<!--
   Bookmark Commander by Tom J Demuyt is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
   Permissions beyond the scope of this license are available by contacting konijn@gmail.com
  -->
@@ -12,27 +12,27 @@
   <meta name="Author" content="Tom J Demuyt">
   <meta name="Keywords" content="Bookmarks">
 
-  <script type="text/javascript" src="jquery.1.6.js"></script> 
+  <script type="text/javascript" src="jquery.1.6.js"></script>
 
   <SCRIPT LANGUAGE="JavaScript">
-  
+
     //Not sure whether this should be in bc.js or here..
     var screenwidth = 120;
     var panelwidth  = ( screenwidth - 4 ) / 2
     var panelheight = 30
-  
+
   </SCRIPT>
-  
-  <script type="text/javascript" src="bc.js"></script> 
-  <script type="text/javascript" src="viewer.js"></script> 
-  <script type="text/javascript" src="editor.js"></script>   
-  <link type="text/css" rel="stylesheet" href="bc.css" />   
-  
+
+  <script type="text/javascript" src="bc.js"></script>
+  <script type="text/javascript" src="viewer.js"></script>
+  <script type="text/javascript" src="editor.js"></script>
+  <link type="text/css" rel="stylesheet" href="bc.css" />
+
  </head>
 
  <body style="font-family: Vera;">
 
-<!-- These codes were retrieved from http://www.utf8-chartable.de/unicode-utf8-table.pl ( box drawing ) 
+<!-- These codes were retrieved from http://www.utf8-chartable.de/unicode-utf8-table.pl ( box drawing )
  ┌─┬─┐  ╔═╦═╗
  ├─┼─┤  ╠═╬═╣
  │ │ │  ║ ║ ║
@@ -43,26 +43,26 @@
 <script>
 
     //Menu
-	  document.writeln( "<span class='menu'>" + ("  Left     File     Command     Options     Right").extend() + "</span>" );
-	  //Box Top
+    document.writeln( "<span class='menu'>" + ("  Left     File     Command     Options     Right").extend() + "</span>" );
+    //Box Top
     document.writeln( "<span class='border'><span id='h1'>" + ( "╔" + "═".repeat(panelwidth) + "╗").repeat(2) + "</span>" ); //Missing span here !, it's below now
 
     //Entries
     for( var counter = 0 ; counter < panelheight ; counter++ )
     {
-      document.write(   "║<span id='left" + counter + "' class='border'>" + " ".repeat(panelwidth) + "</span>║" ); 
-      document.writeln( "║<span id='rite" + counter + "' class='border'>" + " ".repeat(panelwidth) + "</span>║" ); 
+      document.write(   "║<span id='left" + counter + "' class='border'>" + " ".repeat(panelwidth) + "</span>║" );
+      document.writeln( "║<span id='rite" + counter + "' class='border'>" + " ".repeat(panelwidth) + "</span>║" );
     }
 
     //Box Bottom
-    document.writeln(  "<span id='h2'>╠" + "═".repeat(panelwidth) + "╩╩" + "═".repeat(panelwidth) + "╣</span>" ); 
-    document.writeln(  "║<span id='url'>" + " ".repeat((panelwidth+1)*2) + "</span>║" ); 
-    document.writeln(  "<span id='h3'>╚" + "═".repeat((panelwidth+1)*2) + "╝" + "</span></span>" ); 
+    document.writeln(  "<span id='h2'>╠" + "═".repeat(panelwidth) + "╩╩" + "═".repeat(panelwidth) + "╣</span>" );
+    document.writeln(  "║<span id='url'>" + " ".repeat((panelwidth+1)*2) + "</span>║" );
+    document.writeln(  "<span id='h3'>╚" + "═".repeat((panelwidth+1)*2) + "╝" + "</span></span>" );
 
-    var function_keys = 
+    var function_keys =
     [
       { id : 1 ,  description : "Help  " },
-      { id : 2 ,  description : "Menu  " },
+      { id : 2 ,  description : "Mirror" },
       { id : 3 ,  description : "View  " },
       { id : 4 ,  description : "Edit  " },
       { id : 5 ,  description : "Copy  " },
@@ -148,13 +148,18 @@ $(document).ready(function () {
     var counter;
 
     //Go over the children ( folders + bookmarks )
-    for( counter = 0; counter < panelheight && counter < children.length ;counter++)
+    for( counter = 0; counter < panelheight && counter+panelConfig.scroll < children.length ;counter++)
     {
       //Get the child
       var child  = children[counter+panelConfig.scroll];
       //Default bookmark prefix and style
       var prefix = " ";
       var style  = "border";
+
+      //Sometimes, this is messed up ;\
+      if( !child )
+        child = { url : '', title: ''  }
+
 
       //If there are no children though, take out the slash
       if( child.children )
@@ -182,7 +187,7 @@ $(document).ready(function () {
 
       //Get the element
       var element = document.getElementById( panelConfig.prefix + counter );
-    
+
       //set the style
       element.setAttribute("class", style );
 
@@ -216,9 +221,9 @@ $(document).ready(function () {
   commander.delve = function()
   {
     var panel = commander.left.active ? commander.left : commander.right;
-  
+
     var id = document.getElementById( panel.prefix + panel.selected ).commander.id;
-  
+
     commander.select( id );
   }
 
@@ -265,40 +270,46 @@ $(document).ready(function () {
     if( commander.viewing )
     {
       commander.backup = document.body.innerHTML;
-	  
-	  var panel = commander.left.active ? commander.left : commander.right;
+
+    var panel = commander.left.active ? commander.left : commander.right;
       var id = document.getElementById( panel.prefix + panel.selected ).commander.id;
-	   	  
+
       viewer.view( id );
     }
     else
     {
       document.body.innerHTML = commander.backup;
-	  
-	  //we require it for decorating the elements, kludgy, I know
-	  commander.draw();
-	  
-	  key_mapping = commander.key_mapping;
+
+      //we require it for decorating the elements, kludgy, I know
+      commander.draw();
+
+      key_mapping = commander.key_mapping;
     }
   }
-  
+
   /* EDIT */
   commander.edit = function()
   {
-      commander.backup = document.body.innerHTML;
-	  
-	  var panel = commander.left.active ? commander.left : commander.right;
-      var id = document.getElementById( panel.prefix + panel.selected ).commander.id;
-	   	  
-      editor.view( id );
-  }  
+    commander.backup = document.body.innerHTML;
+
+    var panel = commander.left.active ? commander.left : commander.right;
+
+    if( panel.id == 0 )
+      return;
+
+    var id = document.getElementById( panel.prefix + panel.selected ).commander.id;
+
+    commander.editing = true;
+
+    editor.view( id );
+  }
 
 
   /* BACKSPACE */
   commander.back = function()
   {
     var panel = commander.left.active ? commander.left : commander.right;
-  
+
     var element = document.getElementById( panel.prefix + "0" );
     var text = jQuery.trim( element.innerHTML );
 
@@ -372,13 +383,13 @@ $(document).ready(function () {
   {
     var from =  commander.left.active ? commander.left : commander.right;
     var to   = !commander.left.active ? commander.left : commander.right;
-  
+
     if( to.id == "0" )
     {
       alert( "Can not copy bookmarks into the root" )
       return
     }
-  
+
     //Copying from
     var from_id  = document.getElementById( from.prefix + from.selected ).commander.id;
     var bookmark = findBookmarkId( commander.bookmarks , from_id );
@@ -390,7 +401,7 @@ $(document).ready(function () {
     if( bookmark.url )
       newbookmark.url = bookmark.url;
 
-    chrome.bookmarks.create( newbookmark , bootCommander );
+    chrome.bookmarks.create( newbookmark , commander.boot );
   }
 
   /* MOVE */
@@ -407,8 +418,8 @@ $(document).ready(function () {
       alert( "Can not copy bookmarks into the root" )
       return false
     }
-   
-    chrome.bookmarks.move( bookmark.id, { parentId  : to.id }  , bootCommander );
+
+    chrome.bookmarks.move( bookmark.id, { parentId  : to.id }  , commander.boot );
   }
 
   /* DELETE */
@@ -421,9 +432,9 @@ $(document).ready(function () {
     //What is interesting, is that removeTree works on non-trees as well
     //I am not going to count on that though ;]
     if( bookmark.children )
-      chrome.bookmarks.removeTree( bookmark.id , bootCommander );
+      chrome.bookmarks.removeTree( bookmark.id , commander.boot );
     else
-      chrome.bookmarks.remove( bookmark.id , bootCommander );
+      chrome.bookmarks.remove( bookmark.id , commander.boot );
   }
 
   /* CREATE FOLDER */
@@ -435,8 +446,21 @@ $(document).ready(function () {
     if(foldertext)
     {
       var newbookmark = { parentId : panel.id , title : foldertext };
-      chrome.bookmarks.create( newbookmark , bootCommander );
-    }  
+      chrome.bookmarks.create( newbookmark , commander.boot );
+    }
+  }
+
+  /* EQUALIZE */
+  commander.equalize = function()
+  {
+    var active =  commander.left.active ? commander.left : commander.right;
+    var sleepy = !commander.left.active ? commander.left : commander.right;
+
+    sleepy.id       = active.id;
+    sleepy.selected = 0;
+    sleepy.scroll   = 0;
+
+    commander.draw();
   }
 
   /* PLUS , MOVE UP */
@@ -454,14 +478,14 @@ $(document).ready(function () {
 
     if( bookmark.index == 0 )
       return;
-    
+
     if( panel.selected == 0 )
       panel.scroll--;
     else
       panel.selected--;
 
-    chrome.bookmarks.move( id, { parentId: panel.id , index : (bookmark.index-1)   }  , bootCommander );
-  
+    chrome.bookmarks.move( id, { parentId: panel.id , index : (bookmark.index-1)   }  , commander.boot );
+
   }
 
   /* DOWN, MOVE DOWN */
@@ -488,31 +512,31 @@ $(document).ready(function () {
       else
         panel.selected++;
 
-      chrome.bookmarks.move( bookmark.id , { parentId: panel.id , index : (bookmark.index-1)   }  , bootCommander );
+      chrome.bookmarks.move( bookmark.id , { parentId: panel.id , index : (bookmark.index-1)   }  , commander.boot );
     }
   }
 
 
   /* INIT, RE-INIT */
-  function bootCommander()
+  commander.boot = function()
   {
     chrome.bookmarks.getTree( function(stuff)
-    { 
+    {
       commander.bookmarks = stuff ;
       commander.draw();
     });
   }
-  bootCommander()
-  
+  commander.boot()
+
   /* EVIL Mac Fix */
   if( navigator.userAgent.has( "Mac" ) )
   {
-	//Replace ═ with =, cause silly Mac OS
-	$("#h1").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
-	$("#h2").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });  
-  	$("#h3").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
+  //Replace ═ with =, cause silly Mac OS
+  $("#h1").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
+  $("#h2").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
+    $("#h3").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
   }
-  
+
   //Key mappings
   //Start with the viewer
   key_mapping = {};
@@ -520,28 +544,30 @@ $(document).ready(function () {
   key_mapping[114] = commander.view;    //F3
   key_mapping[121] = commander.view;    //F10 ( yes, the same )
   key_mapping[116] = viewer.test;			  //F5
-  key_mapping[13]  = viewer.test;			  //Enter  
-  viewer.key_mapping = key_mapping;  
+  key_mapping[13]  = viewer.test;			  //Enter
+  viewer.key_mapping = key_mapping;
 
   //Start with the viewer
   key_mapping = {};
   key_mapping[112] = commander.help;    //F1
   key_mapping[113] = editor.save;       //F2
-  key_mapping[115] = editor.quit;       //F4  
+  key_mapping[114] = editor.quit;       //F3
+  key_mapping[115] = editor.quit;       //F4
   key_mapping[116] = editor.test;			  //F5
   key_mapping[121] = editor.quit;			  //F10 ( yes, the same )
-  editor.key_mapping = key_mapping;  
-  
+  editor.key_mapping = key_mapping;
+
   //Now do the commander key mappings
   key_mapping = {};
-  key_mapping[8 ] =  commander.back;           //backspace
-  key_mapping[9 ] =  commander.swapPanel;      //tab
-  key_mapping[13] =  commander.delve;          //enter
-  key_mapping[40] =  commander.down;           //Arrow Down
-  key_mapping[38] =  commander.up;             //Arrow Up
-  key_mapping[36] =  commander.home;           //Home key
-  key_mapping[35] =  commander.end;            //End key
+  key_mapping[8 ] =  commander.back;          //backspace
+  key_mapping[9 ] =  commander.swapPanel;     //tab
+  key_mapping[13] =  commander.delve;         //enter
+  key_mapping[40] =  commander.down;          //Arrow Down
+  key_mapping[38] =  commander.up;            //Arrow Up
+  key_mapping[36] =  commander.home;          //Home key
+  key_mapping[35] =  commander.end;           //End key
   key_mapping[112] = commander.help;          //F1
+  key_mapping[113] = commander.equalize;      //F2
   key_mapping[114] = commander.view;          //F3
   key_mapping[115] = commander.edit;          //F4
   key_mapping[116] = commander.copy;          //F5
@@ -553,13 +579,13 @@ $(document).ready(function () {
   key_mapping[187] = commander.moveup;        //+ on main
   key_mapping[109] = commander.movedown;      //- on numeric
   key_mapping[189] = commander.movedown;      //- on main
-  
+
   commander.key_mapping = key_mapping;
 
   control_key_mapping = {};
   control_key_mapping[79] = commander.showLogs;
-  
-  
+
+
   //Escape function keys are mostly meant for the evil mac that hijacks F keys
   //My brain is so hard wired to Escape 0 for quit that I even do this on Windows now
   escape_mapping = {};
@@ -568,7 +594,6 @@ $(document).ready(function () {
   for( var counter = 49 ; counter < 58 ; counter++ )
     escape_mapping[counter] = (112-49)+counter; //1 ->F1 till 9->F9
   escape_mapping[48] = 121; //0 -> F10 does not follow the pattern
-  
 
   $(document).keydown( function( event )
   {
@@ -579,17 +604,23 @@ $(document).ready(function () {
       if( escape_mapping[ event.which ] )
         event.which = escape_mapping[ event.which ];
     }
-    
+
     if( key_mapping[ event.which ] )
     {
       key_mapping[ event.which ]();
       return false;
     }
-    
+
     if( event.which == 27 )
       key_mapping.escape = true;
-    
+
     return true;
+  });
+
+  $(document).keyup( function( event )
+  {
+    if( commander.editing )
+      editor.considerTextAreas();
   });
 
 });
