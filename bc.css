@@ -23,6 +23,7 @@
   .selected { color: rgb(0,0,0);       background: rgb(0,128,128);}
   .js       { color: rgb(0,255,0);     background: rgb(0,0,128);  }
   .fcode    { color: rgb(192,192,192); background: rgb(0,0,0);    }
+  .speed    { color: rgb(255,255,0);   background: rgb(0,128,128);}
 
   /* Vera font for textarea's did not work for textarea's b*/
   textarea
@@ -45,4 +46,20 @@
     height: 0px;
     width: 0px;
     background-color: inherit;
+  }
+
+  
+  @-webkit-keyframes blink {
+    0%     { opacity: 0 } 50% { opacity: 0 }
+    50.01% { opacity: 1 } 100% { opacity: 1 }
+  }
+ 
+  blink {
+    -webkit-animation: blink 0.7s infinite linear alternate;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  hidden {
+    color : green;
+    opacity: 0;
   }

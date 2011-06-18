@@ -46,6 +46,14 @@ editor.view = function( id )
   editor.changed = false;
   editor.saved   = false;
 
+  //Show javascript nicely, clone into content as to not mess up the original object, this is view after all
+  var content = bookmark.url;
+  if( content.startsWith("j") )
+    content = js_beautify( content , { 'indent_size': 2 } );
+
+  editor.bookmark.content = content;
+
+
     //Table due to general textarea weirdness
     var s = "<table><tr><td style='background: rgb(0,0,128);'><pre>";
     //Menu
@@ -53,7 +61,7 @@ editor.view = function( id )
     //Its a mess, but a short mess ;\
     s = s + "<textarea class='blue' cols='" + editor.width + "' rows='3' id='title'>" + bookmark.title + "</textarea>\n"
     s = s + ("<span class='menu'>" + ("  URL").extend() + "</span>\n" );
-    s = s + "<textarea class='blue' cols='" + editor.width + "' rows='24' id='url'" + editor.urlreadonly + ">" + bookmark.url + "</textarea>\n"
+    s = s + "<textarea class='blue' cols='" + editor.width + "' rows='24' id='url'" + editor.urlreadonly + ">" + content + "</textarea>\n"
 
 
     for( key in editor.function_keys )
@@ -94,7 +102,7 @@ editor.considerTextAreas = function()
   }
 
    //Consider the url
-  if( urlElement.value != editor.bookmark.url )
+  if( urlElement.value != editor.bookmark.content )
   {
     _changed = true;
     urlElement.style.fontStyle = "italic"
@@ -120,7 +128,8 @@ editor.save = function()
   var url = document.getElementById( "url" ).value.trim();
 
   if( url.length > 0 )
-    o.url = url;
+    //o.url = url;
+    o.url = editor.condense( url );
 
   chrome.bookmarks.update( editor.id, o );
 
@@ -130,7 +139,35 @@ editor.save = function()
 
   editor.bookmark = o;
 
+  //Yes, this is messy
+  //For editing purpose we keep refering to the uncondensed url
+  editor.bookmark.content = url;
+
 }
+
+editor.condense = function( url )
+{
+  var s = "";
+
+  //This only is needed with js bookmarklets
+  if( !url.startsWith( "j" )  )
+    return url;
+
+  var ta = url.split("\n");
+
+  for( var key in ta )
+  {
+    //The beautifier inlines comment
+    //So we need to explitly outline those
+    var line = ta[key].trim();
+    if( line.startsWith( "/*" ) )
+      line = "\n" + line;
+    s = s + line;
+  }
+
+  return s;
+}
+
 
 editor.quit = function()
 {

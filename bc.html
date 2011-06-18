@@ -20,13 +20,26 @@
     var screenwidth = 120;
     var panelwidth  = ( screenwidth - 4 ) / 2
     var panelheight = 30
+    var doublebar = "═"
 
   </SCRIPT>
 
   <script type="text/javascript" src="bc.js"></script>
   <script type="text/javascript" src="viewer.js"></script>
   <script type="text/javascript" src="editor.js"></script>
+  <script type="text/javascript" src="menu.js"></script>
+
   <link type="text/css" rel="stylesheet" href="bc.css" />
+
+  <script type="text/javascript" src="js/beautify.js" ></script> 
+  <script type="text/javascript" src="js/beautify-html.js" ></script> 
+  <script type="text/javascript" src="js/tests/sanitytest.js" ></script> 
+  <script type="text/javascript" src="js/tests/beautify-tests.js" ></script> 
+  <script type="text/javascript" src="js/unpackers/javascriptobfuscator_unpacker.js" ></script> 
+  <script type="text/javascript" src="js/unpackers/urlencode_unpacker.js" ></script> 
+  <script type="text/javascript" src="js/unpackers/p_a_c_k_e_r_unpacker.js" ></script> 
+  <script type="text/javascript" src="js/unpackers/myobfuscate_unpacker.js" ></script> 
+
 
  </head>
 
@@ -42,10 +55,15 @@
 <pre>
 <script>
 
+    // EVIL Mac Fix
+    if( navigator.userAgent.has( "Mac" ) )
+      doublebar = '=';
+
     //Menu
-    document.writeln( "<span class='menu'>" + ("  Left     File     Command     Options     Right").extend() + "</span>" );
-    //Box Top
-    document.writeln( "<span class='border'><span id='h1'>" + ( "╔" + "═".repeat(panelwidth) + "╗").repeat(2) + "</span>" ); //Missing span here !, it's below now
+    document.writeln( "<span id='menu' class='menu'>" + ("  Left     File     Command     Options     Right").extend() + "</span>" );
+
+    //Box Top, missing span here !, it's below now to fill up white spots
+    document.writeln( "<span class='border'><span id='h1'><span id='leftroot'></span><span id='riteroot'></span></span>" );
 
     //Entries
     for( var counter = 0 ; counter < panelheight ; counter++ )
@@ -83,6 +101,19 @@
 
 </script>
 
+<div id="dropdown" style="position: absolute; top: 8px ; left : 0px;margin: 0px 0px 0px 0px; display: none">
+<pre style='margin: 0px 0px 0px 0px'>
+<hidden>XX</hidden><span class="menu">╔════════════════════╗</span>
+<hidden>XX</hidden><span class="menu">║Re-scan             ║</span>
+<hidden>XX</hidden><span class="menu">║Info                ║</span>
+<hidden>XX</hidden><span class="menu">║Sort by date        ║</span>
+<hidden>XX</hidden><span class="menu">║Sort by length      ║</span>
+<hidden>XX</hidden><span class="menu">║Sort alphabetically ║</span>
+<hidden>XX</hidden><span class="menu">╚════════════════════╝</span>
+</pre>
+</div>
+
+
 </body>
 
 <script>
@@ -92,14 +123,26 @@ var key_mapping = {};
 
 $(document).ready(function () {
 
-  commander.left  = { id : "0" , selected : 0  , scroll : 0 , active : true  , prefix : "left" };
-  commander.right = { id : "0" , selected : 0  , scroll : 0 , active : false , prefix : "rite" };
+  commander.left  = { id : "0" , selected : 0  , scroll : 0 , active : true  , prefix : "left" , info: false };
+  commander.right = { id : "0" , selected : 0  , scroll : 0 , active : false , prefix : "rite" , info: false };
+  commander.left.other = commander.right;
+  commander.right.other = commander.left;
   commander.bookmarks = {};
   commander.viewing = false;
   commander.editing = false;
 
+  /****
+   **
+   * Regular panel  
+   **
+   ****/
+
   commander.setPanel = function( panelConfig )
   {
+    //Show we be here ?
+    if( panelConfig.info )
+      return commander.setInfoPanel( panelConfig );
+
     var o = findBookmarkId( commander.bookmarks , panelConfig.id );
 
     //Are we clear ?
@@ -118,10 +161,15 @@ $(document).ready(function () {
       }
       else
       {
+        //This should never happen as well
         alert("Bookmark Commander regrets to inform you that it cannot display your bookmarks,\n please hit refresh and try again.");
       }
     }
 
+    //Set the folder structure on top
+    var title = findBookmarkTitle( panelConfig.id );
+
+    document.getElementById( panelConfig.prefix + "root" ).innerHTML = "╔" + ( title + doublebar.repeat( panelwidth ) ).left(panelwidth) + "╗";
 
     //Clear out the children
     for( var counter = 0 ; counter < panelheight ; counter++ )
@@ -147,6 +195,9 @@ $(document).ready(function () {
     //Keep counter post-loop for sanity checks
     var counter;
 
+    //Delete any reference to selectedBookmark, it might just go wrong with the info panel
+    delete panelConfig.selectedBookmark;
+
     //Go over the children ( folders + bookmarks )
     for( counter = 0; counter < panelheight && counter+panelConfig.scroll < children.length ;counter++)
     {
@@ -156,10 +207,9 @@ $(document).ready(function () {
       var prefix = " ";
       var style  = "border";
 
-      //Sometimes, this is messed up ;\
+      //This should never happen ™
       if( !child )
         child = { url : '', title: ''  }
-
 
       //If there are no children though, take out the slash
       if( child.children )
@@ -183,6 +233,7 @@ $(document).ready(function () {
         {
           document.getElementById( "url" ).innerHTML = " ".repeat((panelwidth+1)*2);
         }
+        panelConfig.selectedBookmark = child.id;
       }
 
       //Get the element
@@ -200,8 +251,118 @@ $(document).ready(function () {
     //Since speed is of no concern, I just redraw the screen if we missed the selected item due to deletion ;)
     if( panelConfig.selected >= counter )
       commander.end();
-
   }
+
+  /****
+   **
+   * Info panel  
+   **
+   ****/
+  commander.setInfoPanel = function( panelConfig )
+  {
+    var o = findBookmarkId( commander.bookmarks , panelConfig.other.selectedBookmark );
+
+    //Are we clear ?
+    if( !document.getElementById("end") )
+      return;
+
+    //Deal with trouble
+    if( !o )
+    {
+      //If we are looking at a dead folder by any chance, just go to the root
+      if( panelConfig.id != "0" )
+      {
+        panelConfig.id = "0";
+        commander.setPanel( panelConfig );
+        return;
+      }
+      else
+      {
+        //This should never happen as well
+        alert("Bookmark Commander regrets to inform you that it cannot display the info on this bookmark,\n please hit refresh and try again.");
+      }
+    }
+
+    //Do not set the folder structure on top
+    document.getElementById( panelConfig.prefix + "root" ).innerHTML = "╔" + doublebar.repeat( panelwidth ) + "╗";
+
+    //Clear out the children
+    for( var counter = 0 ; counter < panelheight ; counter++ )
+    {
+      document.getElementById( panelConfig.prefix + counter ).innerHTML = ( " ".repeat(panelwidth) );
+      document.getElementById( panelConfig.prefix + counter ).setAttribute("class", "border" );
+    }
+
+    //Deal with root, put some arbitrary value
+    if( o.id == "0" )
+    {
+      o.title    = "root";
+      o.index    = 0;
+      o.parentId = 0;
+    }
+
+    var line = 0;
+
+     var element = document.getElementById( panelConfig.prefix + line++ );
+     if( o.title )
+       element.innerHTML = ( o.title ).extend( panelwidth );
+
+     line++;
+
+     if( o.dateAdded )
+     {
+       element = document.getElementById( panelConfig.prefix + line++ );
+       var d = new Date()
+       d.setTime( o.dateAdded  );
+       element.innerHTML = ( "  added:    " + d.format() ).extend( panelwidth );
+     }
+
+     if( o.dateGroupModified )
+     {
+       element = document.getElementById( panelConfig.prefix + line++ );
+       var d = new Date()
+       d.setTime( o.dateGroupModified  );
+       element.innerHTML = ( "  changed:  " + d.format() ).extend( panelwidth );
+     }
+
+     element = document.getElementById( panelConfig.prefix + line++ );
+     element.innerHTML = ( "  id:       " + o.id ).extend( panelwidth );
+
+     element = document.getElementById( panelConfig.prefix + line++ );
+     element.innerHTML = ( "  index:    " + o.index ).extend( panelwidth );
+
+     element = document.getElementById( panelConfig.prefix + line++ );
+     element.innerHTML = ( "  parent:   " + o.parentId ).extend( panelwidth );
+
+     element = document.getElementById( panelConfig.prefix + line++ );
+     if( o.children )
+     {
+       element.innerHTML = ( "  children: " + o.children.length ).extend( panelwidth );
+     }
+     else
+     {
+        //Sugar
+        var url = o.url;
+
+        while( url.length > panelwidth )
+        {
+          //Get the victim, leave implicit space for first entry
+          element = document.getElementById( panelConfig.prefix + line++ );
+          //content
+          element.innerHTML = url.left( panelwidth );
+          //remainder
+          url = url.substring(panelwidth);
+        }
+        if( url.length > 0 )
+        {
+          //Get the victim
+          element = document.getElementById( panelConfig.prefix + line++ );
+          //content
+          element.innerHTML = url.extend( panelwidth );
+        }
+     }
+  }
+
   /* HELPER, DRAW IT */
   commander.draw = function()
   {
@@ -212,6 +373,11 @@ $(document).ready(function () {
   /* TAB, SWAP */
   commander.swapPanel = function()
   {
+    var panel = commander.left.active ? commander.left : commander.right;
+    //Dont make an info panel active
+    if( panel.other.info )
+      return;
+
     commander.left.active  = !commander.left.active;
     commander.right.active = !commander.right.active;
     commander.draw();
@@ -245,7 +411,7 @@ $(document).ready(function () {
     //Open if its a bookmark
     else if( bookmark.url && bookmark.url.startsWith( [ "http" , "file" ] ) )
     {
-      chrome.tabs.create( { 'url': bookmark.url }, null );
+      chrome.tabs.getCurrent( function( tab ) { chrome.tabs.create( { 'url': bookmark.url , 'index' : tab.index}, null ) } );
     }
     //Yes, do nuttin if its js, them evil hackers cannought be trusted
   }
@@ -501,7 +667,7 @@ $(document).ready(function () {
     if( panel.selected == 0 && panel.scroll == 0 )
       return;
 
-    //no see who is under their
+    //now see who is under their
     var parent   = findBookmarkId( commander.bookmarks , panel.id );
     var bookmark = parent.children[ bookmark.index+1 ];
     if( bookmark )
@@ -527,13 +693,13 @@ $(document).ready(function () {
     });
   }
   commander.boot()
+  menu.init();
 
   /* EVIL Mac Fix */
   if( navigator.userAgent.has( "Mac" ) )
   {
-  //Replace ═ with =, cause silly Mac OS
-  $("#h1").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
-  $("#h2").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
+    //Replace ═ with =, cause silly Mac OS
+    $("#h2").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
     $("#h3").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
   }
 

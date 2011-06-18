@@ -5,7 +5,7 @@ var viewer = {};
 viewer.view = function( id )
 {
     //Function keys
-    viewer.function_keys = 
+    viewer.function_keys =
     [
       { id : 1 ,  description : "Help  " },
       { id : 2 ,  description : "Edit  " },
@@ -19,44 +19,49 @@ viewer.view = function( id )
       { id : 10 , description : "Quit  " },
     ];
 
-	var bookmark = findBookmarkId( commander.bookmarks , id );
-	
-	if(!bookmark)
-		bookmark = { title: 'Something went terribly wrong' , url: '' };
+  var bookmark = findBookmarkId( commander.bookmarks , id );
 
-	if(!bookmark.title)
-		bookmark.title = 'Something went terribly wrong';
+  if(!bookmark)
+    bookmark = { title: 'Something went terribly wrong' , url: '' };
 
-	if(!bookmark.url)
-	{
-		//Avoid the dreaded undefined ;]
-		bookmark.url = '';		
-		//Dont show test for folders
-		viewer.function_keys[4].description = '      ';
-	}
-		
-	viewer.id = id;
-	viewer.bookmark = bookmark;	
+  if(!bookmark.title)
+    bookmark.title = 'Something went terribly wrong';
+
+  if(!bookmark.url)
+  {
+    //Avoid the dreaded undefined ;]
+    bookmark.url = '';
+    //Dont show test for folders
+    viewer.function_keys[4].description = '      ';
+  }
+
+  viewer.id = id;
+  viewer.bookmark = bookmark;
+
+    //Show javascript nicely, clone into content as to not mess up the original object, this is view after all
+    var content = bookmark.url;
+    if( content.startsWith("j") )
+      content = js_beautify( content , { 'indent_size': 2 } );
 
     s = "<table><tr><td style='background: rgb(0,0,128);'><pre>";
     //Menu
-    s = s + ("<span class='menu'>" + ("  Folder/Bookmark").extend() + "</span>\n" );
+    s = s + ("<span class='menu'>" + findBookmarkTitle(id).extend() + "</span>\n" );
 
     s = s + "<textarea class='blue' cols='118' rows='3' readonly='readonly'>" + bookmark.title + "</textarea>\n"
     s = s + ("<span class='menu'>" + ("  URL").extend() + "</span>\n" );
-    s = s + "<textarea class='blue' cols='118' rows='24' readonly='readonly'>" + bookmark.url + "</textarea>\n"
-	  
+    s = s + "<textarea class='blue' cols='118' rows='24' readonly='readonly'>" + content + "</textarea>\n"
+
 
     for( key in viewer.function_keys )
-	{
-	  var f = viewer.function_keys[key];
+  {
+    var f = viewer.function_keys[key];
       s = s + ( "<span class='fcode'>F" + f.id + "</span><span class='menu'>" + f.description + "</span><span class='fcode'> </span>" );
     }
     s = s + ( "<span id='end' class='fcode'>" + " ".repeat( screenwidth - 91 ) + "</span>\n" );
 
     document.body.innerHTML = s;
-	
-	key_mapping = viewer.key_mapping;
+
+  key_mapping = viewer.key_mapping;
 }
 
 viewer.test = function()
