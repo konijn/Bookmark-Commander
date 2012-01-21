@@ -1,4 +1,7 @@
-
+/*
+  Bookmark Commander by Tom J Demuyt is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+  Permissions beyond the scope of this license are available by contacting konijn@gmail.com
+*/
 var viewer = {};
 
 //This is where the magic happens, so to say

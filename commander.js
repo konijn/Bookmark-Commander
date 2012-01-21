@@ -4,8 +4,8 @@
 */
   var commander   = {};
 
-  commander.left  = { id : "0" , selected : 0  , scroll : 0 , active : true  , prefix : "left" , info: false };
-  commander.right = { id : "0" , selected : 0  , scroll : 0 , active : false , prefix : "rite" , info: false };
+  commander.left  = { id : "1" , selected : 0  , scroll : 0 , active : true  , prefix : "left" , info: false };
+  commander.right = { id : "2" , selected : 0  , scroll : 0 , active : false , prefix : "rite" , info: false };
   commander.left.other = commander.right;
   commander.right.other = commander.left;
   commander.bookmarks = {};
@@ -308,7 +308,7 @@
       delete commander.results;
       commander.back();
     }
-    else    
+    else
       chrome.tabs.getCurrent( function( tab ) { chrome.tabs.remove( tab.id ) } );
   }
 
@@ -354,6 +354,17 @@
     editor.view( id );
   }
 
+  /* MENU */
+  commander.menu = function()
+  {
+    commander.backup = document.body.innerHTML;
+    //Tricky, hide the selected item
+    $(".selected").removeClass('selected')
+    //Define keyboard behaviour
+    key_mapping = menu.key_mapping;
+    //One for the money..
+    menu.show();
+  }
 
   /* BACKSPACE */
   commander.back = function()
@@ -574,7 +585,7 @@
       chrome.bookmarks.move( bookmark.id , { parentId: panel.id , index : (bookmark.index-1)   }  , commander.boot );
     }
   }
-  
+
   /* SEARCH */
   commander.search = function( searchtext )
   {
@@ -585,13 +596,13 @@
       else
         searchtext = prompt("Enter folder name","");
     }
-    chrome.bookmarks.search( searchtext , function(o){ 
+    chrome.bookmarks.search( searchtext , function(o){
       var panel = commander.left.active ? commander.left : commander.right;
       panel.id = "search";
       commander.results = o;
       commander.query = searchtext;
       commander.draw();
-    });  
+    });
   }
 
   /* HELPER, DRAW IT */
@@ -599,11 +610,11 @@
   {
     if( commander.left.id == "search" )
     {
-      chrome.bookmarks.search( commander.query , function(o){ 
+      chrome.bookmarks.search( commander.query , function(o){
         commander.results = o;
         commander.setPanel( commander.left );
-        commander.setPanel( commander.right );    
-      });       
+        commander.setPanel( commander.right );
+      });
       return;
     }
 
@@ -611,12 +622,12 @@
     if( commander.left.info )
     {
       commander.setPanel( commander.right );
-      commander.setPanel( commander.left );    
+      commander.setPanel( commander.left );
     }
     else
     {
       commander.setPanel( commander.left );
-      commander.setPanel( commander.right );    
+      commander.setPanel( commander.right );
     }
   }
 

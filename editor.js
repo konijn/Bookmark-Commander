@@ -1,4 +1,7 @@
-
+/*
+  Bookmark Commander by Tom J Demuyt is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+  Permissions beyond the scope of this license are available by contacting konijn@gmail.com
+*/
 var editor = {};
 editor.width = screenwidth - 2;
 
@@ -168,11 +171,12 @@ editor.condense = function( url )
   return s;
 }
 
-
+//TODO, ask whether the user wants to save ?
 editor.quit = function()
 {
     document.body.innerHTML = commander.backup;
 
+    //We need to boot (reread bookmarks from Chome ) if we changed something
     if( editor.saved )
       commander.boot();
     else
