@@ -18,6 +18,36 @@
    **
    ****/
 
+  /* INIT, RE-INIT */
+  commander.boot = function()
+  {
+    chrome.bookmarks.getTree( function(stuff)
+    {
+      commander.bookmarks = stuff ;
+      commander.draw();
+    });
+  }
+
+    /* HELPER, DRAW IT */
+  commander.draw = function()
+  {
+    if( commander.left.id == "search" )
+    {
+      chrome.bookmarks.search( commander.query , function(o){
+        commander.results = o;
+        commander.setPanel( commander.left );
+        commander.setPanel( commander.right );
+      });
+      return;
+    }
+
+    //First draw the active one
+    var panel = commander.left.active ? commander.left : commander.right;
+    commander.setPanel( panel );
+    commander.setPanel( panel.other );
+  }
+
+  /* Core wild magic */
   commander.setPanel = function( panelConfig )
   {
     //Show we be here ?
@@ -60,7 +90,7 @@
     }
 
     //We merely do this to facilitate the following trick
-    var children = [].concat( o.children );
+    var children = [].concat( filterBookmarks( o.children , panelConfig.filter ) );
 
     //Do we have a parent ?, if so top the entries with '..'
     if( o.parentId )
@@ -124,7 +154,24 @@
       element.setAttribute("class", style );
 
       //Set the content
-      element.innerHTML =  ( prefix + child.title ).extend( panelwidth );
+       var innerHTML =  ( prefix + child.title ).extend( panelwidth );
+
+      //Highlight filter if any
+      if( panelConfig.filter )
+      {
+      	innerHTML = innerHTML.replaceAll( panelConfig.filter , "\u2604" );
+      	innerHTML = innerHTML.replaceAll( "\u2604" , "<span class='paars'>" + panelConfig.filter + "</span>" );
+      }
+
+      //Highlight filter if any
+      if( panelConfig.selector )
+      {
+      	if( innerHTML.has( panelConfig.selector ) || panelConfig.selector == "*" )
+      		innerHTML = "<span class='yellow'>" + innerHTML + "</span>";
+      }
+
+      //Set the final innerHTML only now to prevent potential flickering
+      element.innerHTML = innerHTML
 
       //Set the new index
       element.commander = { id : child.id };
@@ -594,7 +641,7 @@
       if(commander.query)
         searchtext = commander.query;
       else
-        searchtext = prompt("Enter folder name","");
+        searchtext = prompt("Enter search string",""); //"" is the default
     }
     chrome.bookmarks.search( searchtext , function(o){
       var panel = commander.left.active ? commander.left : commander.right;
@@ -605,38 +652,30 @@
     });
   }
 
-  /* HELPER, DRAW IT */
-  commander.draw = function()
+  /* FILTER */
+  commander.filter = function(panel)
   {
-    if( commander.left.id == "search" )
-    {
-      chrome.bookmarks.search( commander.query , function(o){
-        commander.results = o;
-        commander.setPanel( commander.left );
-        commander.setPanel( commander.right );
-      });
-      return;
-    }
+  	if(!panel)
+  		panel = commander.left.active ? commander.left : commander.right;
 
-    //Less Ugly, but still ugly
-    if( commander.left.info )
-    {
-      commander.setPanel( commander.right );
-      commander.setPanel( commander.left );
-    }
-    else
-    {
-      commander.setPanel( commander.left );
-      commander.setPanel( commander.right );
-    }
+  	panel.filter = prompt("Enter filter string", panel.filter ); //"" is the default
+
+  	panel.filter.remove("*");
+
+  	commander.draw();
   }
 
-  /* INIT, RE-INIT */
-  commander.boot = function()
+  /* SELECT */
+  commander.selector = function(panel)
   {
-    chrome.bookmarks.getTree( function(stuff)
-    {
-      commander.bookmarks = stuff ;
-      commander.draw();
-    });
+  	if(!panel)
+  		panel = commander.left.active ? commander.left : commander.right;
+
+  	if(!panel.selector)
+  		panel.selector = "*";
+
+  	panel.selector = prompt("Select", panel.selector ); //"" is the default
+
+  	commander.draw();
   }
+

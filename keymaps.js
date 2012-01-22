@@ -47,6 +47,8 @@
   key_mapping[38] =  commander.up;            //Arrow Up
   key_mapping[36] =  commander.home;          //Home key
   key_mapping[35] =  commander.end;           //End key
+  key_mapping[56] =  commander.selector;      //* key on main
+  key_mapping[106] =  commander.selector;     //* key on numeric
   key_mapping[112] = commander.help;          //F1
   key_mapping[113] = commander.equalize;      //F2
   key_mapping[114] = commander.view;          //F3
@@ -61,6 +63,7 @@
   key_mapping[187] = commander.moveup;        //+ on main
   key_mapping[109] = commander.movedown;      //- on numeric
   key_mapping[189] = commander.movedown;      //- on main
+  key_mapping[191] = commander.filter;        // / on main and / on numeric
   commander.key_mapping = key_mapping;
 
   control_key_mapping = {};

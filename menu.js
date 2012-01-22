@@ -71,11 +71,11 @@ menu.init = function()
 
   //Each menu is an object
   //Bad violation of DRY, but its worth not rewriting this.
-  menu.left    = { caption : "Left"    , indent : 2  , items : menu.itemize( 2 , "&List,&Info,&Tree,_,Sort by &Date,&Sort by Length,Sort &Alphabetically,_,&Filter,_,&Rescan|C-r" ) };
+  menu.left    = { caption : "Left"    , indent : 2  , items : menu.itemize( 2 , "&List,&Info,&Tree,_,Sort by &Date,&Sort by Length,Sort &Alphabetically,_,&Filter|/,Select|*,_,&Rescan|C-r" ) };
   menu.file    = { caption : "File"    , indent : 12 , items : menu.itemize( 12 , "&Help|F1,Mirror|F2,View|F3,Edit|F4,Copy|F5,Move|F6,Create Folder |F7,Delete|F8,Quit|F10,_,Move up|+,Move down|-,Select|*,Filter|/" ) };
   menu.command = { caption : "Command" , indent : 21 , items : menu.itemize( 21 , "&Search,S&wap panels" ) };
   menu.options = { caption : "Options" , indent : 33 , items : menu.itemize( 33 ,"&Learn Keys" ) };
-  menu.right   = { caption : "Right"    , indent : 45 , items : menu.itemize( 45 , "&List,&Info,&Tree,_,Sort by &Date,&Sort by Length,Sort &Alphabetically,_,&Filter,_,&Rescan|C-r" ) };
+  menu.right   = { caption : "Right"    , indent : 45 , items : menu.itemize( 45 , "&List,&Info,&Tree,_,Sort by &Date,&Sort by Length,Sort &Alphabetically,_,&Filter|/,Select|*,_,&Rescan|C-r" ) };
 
   menu.left.left  = menu.right;
   menu.left.right = menu.file;
@@ -263,6 +263,49 @@ menu.dispatch = function( s )
   	var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
 
   }
+
+  if( command == "Search" )
+  {
+  	commander.search();
+  }
+
+  if( command == "Swap panels" )
+  {
+  	var temp = commander.left;
+  	commander.left = commander.right;
+  	commander.right = temp;
+
+    //This is unfortunate, a 'clever' hack bleeding thru
+  	commander.left.prefix = "left";
+  	commander.right.prefix = "rite";
+  }
+
+  if( command == "Filter" )
+  {
+  	if (menu.current.caption == "File")
+  	{
+  		commander.filter();
+  	}
+  	else
+  	{
+  		var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
+  		commander.filter( panel );
+  	}
+  }
+
+  if( command == "Select" )
+  {
+  	if (menu.current.caption == "File")
+  	{
+  		commander.selector();
+  	}
+  	else
+  	{
+  		var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
+  		commander.selector( panel );
+  	}
+  }
+
 
   commander.boot();
 }
