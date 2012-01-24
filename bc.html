@@ -150,7 +150,7 @@
 
 			if( key_mapping[ event.which ] )
 			{
-				key_mapping[ event.which ]();
+				key_mapping[ event.which ]( event );
 				return false;
 			}
 

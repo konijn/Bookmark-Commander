@@ -126,6 +126,17 @@
       if( child.children )
         prefix = "/";
 
+      //Are we dealing with a tree ? Then we have a slightly more complicated prefix
+      if( panelConfig.id == "tree" )
+      {
+        if( !child.depth & child.depth !== 0 )
+          prefix = "!ERROR(no depth)"
+        else if( child.depth === 0 )
+          prefix = "/"
+        else
+          prefix = " ".repeat( child.depth - 2 ) + "|-"      
+      }
+
       //Are we looking at a javascript ?
       if( child.url && child.url.startsWith( "javascript" ) )
         style = "js"
@@ -138,6 +149,11 @@
         if( child.url )
         {
           var url = child.url.left( ((panelwidth+1)*2) ).extend( (panelwidth+1)*2 );
+          document.getElementById( "url" ).innerHTML = url;
+        }
+        else if( panelConfig.id == "tree" )
+        {
+          var url = findBookmarkTitle( child.id ).left( ((panelwidth+1)*2) ).extend( (panelwidth+1)*2 );
           document.getElementById( "url" ).innerHTML = url;
         }
         else
@@ -166,7 +182,7 @@
       //Highlight filter if any
       if( panelConfig.selector )
       {
-      	if( innerHTML.has( panelConfig.selector ) || panelConfig.selector == "*" )
+      	if( ( innerHTML.has( panelConfig.selector ) || panelConfig.selector == "*" ) && child.title != ".." )
       		innerHTML = "<span class='yellow'>" + innerHTML + "</span>";
       }
 
@@ -311,10 +327,18 @@
   commander.delve = function()
   {
     var panel = commander.left.active ? commander.left : commander.right;
-
     var id = document.getElementById( panel.prefix + panel.selected ).commander.id;
 
+    if( panel.id != "tree")
+      return commander.select( id );
+
+    //So, we are dealing with a tree
+    commander.left.active  = !commander.left.active;
+    commander.right.active = !commander.right.active;
+    panel.other.info = false;
+    panel.other.id = id;
     commander.select( id );
+
   }
 
   /* SELECT, ENTER */
@@ -330,6 +354,7 @@
       panel.id = index;
       panel.selected = 0;
       panel.scroll = 0;
+      panel.selector = "";
       commander.draw();
     }
     //Open if its a bookmark
@@ -368,10 +393,13 @@
     {
       commander.backup = document.body.innerHTML;
 
-    var panel = commander.left.active ? commander.left : commander.right;
+      var panel = commander.left.active ? commander.left : commander.right;
       var id = document.getElementById( panel.prefix + panel.selected ).commander.id;
 
-      viewer.view( id );
+      if( id != "0" )
+        viewer.view( id );
+      else
+        commander.viewing =false;
     }
     else
     {
@@ -396,9 +424,11 @@
 
     var id = document.getElementById( panel.prefix + panel.selected ).commander.id;
 
-    commander.editing = true;
-
-    editor.view( id );
+    if( id != "0" )
+    {
+      commander.editing = true;
+      editor.view( id );
+    }
   }
 
   /* MENU */
@@ -439,10 +469,27 @@
       panel.selected++;
 
     if( !(panel.scroll + panel.selected < panel.itemcount) )
-      commander.end();
+      return commander.end();
 
     commander.draw();
   }
+
+  /* PAGE DOWN */
+  commander.pageDown = function()
+  {
+    var panel = commander.left.active ? commander.left : commander.right;
+
+    if( panel.selected < panelheight-1 )
+      panel.selected = panelheight-1;
+    else
+      panel.scroll = panel.scroll + panelheight - 1;
+
+    if( !(panel.scroll + panel.selected < panel.itemcount) )
+      return commander.end();
+
+    commander.draw();
+  }
+  
 
   /* UP */
   commander.up = function()
@@ -457,6 +504,24 @@
       panel.selected--;
     //Sanity fix the scroll value
     if( panel.scroll == -1 )
+      panel.scroll = 0
+    //Draw the commander again
+    commander.draw();
+  }
+
+  /* PAGE UP */
+  commander.pageUp = function()
+  {
+    //Get active panel
+    var panel = commander.left.active ? commander.left : commander.right;
+    //if we are already physically in slot 0, see if we can still scroll up
+    //Otherwise go up a physical slot
+    if( panel.selected != 0 )
+      panel.selected = 0;
+    else
+      panel.scroll = panel.scroll - panelheight + 1;
+    //Sanity fix the scroll value
+    if( panel.scroll < 0 )
       panel.scroll = 0
     //Draw the commander again
     commander.draw();
@@ -501,6 +566,22 @@
       return
     }
 
+    if( to.id == "search" )
+    {
+      alert( "Can not copy bookmarks into search results" )
+      return false
+    }
+
+    if( to.id == "tree" )
+    {
+      alert( "Can not copy bookmarks into the tree" )
+      return false
+    }
+
+    //Are we copying a selection ?
+    if( from.selector && from.selector != "" )
+      return commander.copySelection( from , to );
+
     //Copying from
     var from_id  = document.getElementById( from.prefix + from.selected ).commander.id;
     var bookmark = findBookmarkId( commander.bookmarks , from_id );
@@ -513,6 +594,34 @@
       newbookmark.url = bookmark.url;
 
     chrome.bookmarks.create( newbookmark , commander.boot );
+  }
+
+  /* COPY SELECTION */
+  commander.copySelection = function(from , to)
+  {
+    var o = findBookmarkId( commander.bookmarks , from.id );
+      
+    //Minimal paranoia
+    if( !o || !o.children )
+      return
+
+    var children = [].concat( filterBookmarks( o.children , from.filter ) );
+
+    for( var counter = 0 ; counter < children.length ; counter++ )
+    {
+      if( children[counter].url && children[counter].url.has( from.selector ) || from.selector == "*" )
+      {
+        var bookmark = children[counter];
+        var newbookmark = { parentId : to.id };
+    
+        newbookmark.title = bookmark.title;
+        if( bookmark.url )
+          newbookmark.url = bookmark.url;
+        chrome.bookmarks.create( newbookmark );
+      }
+    }
+
+    commander.boot();
   }
 
   /* MOVE */
@@ -532,11 +641,45 @@
 
     if( to.id == "search" )
     {
-      alert( "Can not copy bookmarks into search results" )
+      alert( "Can not move bookmarks into search results" )
       return false
     }
 
+    if( to.id == "tree" )
+    {
+      alert( "Can not move bookmarks into the tree" )
+      return false
+    }
+
+    //Are we copying a selection ?
+    if( panel.selector && panel.selector != "" )
+      return commander.moveSelection( panel , to );
+
     chrome.bookmarks.move( bookmark.id, { parentId  : to.id }  , commander.boot );
+  }
+
+  /* MOVE SELECTION */
+  commander.moveSelection = function(from , to)
+  {
+    var o = findBookmarkId( commander.bookmarks , from.id );
+      
+    //Minimal paranoia
+    if( !o || !o.children )
+      return
+
+    var children = [].concat( filterBookmarks( o.children , from.filter ) );
+
+    for( var counter = 0 ; counter < children.length ; counter++ )
+    {
+      if( children[counter].url && children[counter].url.has( from.selector ) || from.selector == "*" )
+      {
+        var bookmark = children[counter];
+
+        chrome.bookmarks.move( bookmark.id, { parentId  : to.id }  , commander.boot );
+      }
+    }
+
+    commander.boot();
   }
 
   /* DELETE */
@@ -546,6 +689,10 @@
     var id  = document.getElementById( panel.prefix + panel.selected ).commander.id;
     var bookmark = findBookmarkId( commander.bookmarks , id );
 
+    //Are we copying a selection ?
+    if( panel.selector && panel.selector != "" )
+      return commander.deleteSelection( panel );
+
     //What is interesting, is that removeTree works on non-trees as well
     //I am not going to count on that though ;]
     if( bookmark.children )
@@ -553,6 +700,34 @@
     else
       chrome.bookmarks.remove( bookmark.id , commander.boot );
   }
+
+  /* DELETE SELECTION */
+  commander.deleteSelection = function(from)
+  {
+    var o = findBookmarkId( commander.bookmarks , from.id );
+      
+    //Minimal paranoia
+    if( !o || !o.children )
+      return
+
+    var children = [].concat( filterBookmarks( o.children , from.filter ) );
+
+    for( var counter = 0 ; counter < children.length ; counter++ )
+    {
+      if( children[counter].url && children[counter].url.has( from.selector ) || from.selector == "*" )
+      {
+        var bookmark = children[counter];
+        //What is interesting, is that removeTree works on non-trees as well
+        //I am not going to count on that though ;]
+        if( bookmark.children )
+          chrome.bookmarks.removeTree( bookmark.id , commander.boot );
+        else
+          chrome.bookmarks.remove( bookmark.id , commander.boot );
+      }
+    }
+    commander.boot();
+  }
+
 
   /* CREATE FOLDER */
   commander.createfolder = function()
@@ -668,11 +843,18 @@
   /* SELECT */
   commander.selector = function(panel)
   {
-  	if(!panel)
+    //Panel will actually be an event when called via the '*' key
+  	if(panel instanceof jQuery.Event)
   		panel = commander.left.active ? commander.left : commander.right;
 
   	if(!panel.selector)
+    {
   		panel.selector = "*";
+    }
+    else if ( panel.selector == "*")
+    {
+      panel.selector = "";
+    }
 
   	panel.selector = prompt("Select", panel.selector ); //"" is the default
 

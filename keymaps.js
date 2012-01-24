@@ -1,7 +1,12 @@
+/*
+  Bookmark Commander by Tom J Demuyt is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+  Permissions beyond the scope of this license are available by contacting konijn@gmail.com
+*/
+
   key_mapping = {};
 
 
-  //Key mappings
+  //Key mappings per object/functionality
   //Start with the viewer
   key_mapping = {};
   key_mapping[112] = commander.help;    //F1
@@ -43,6 +48,9 @@
   key_mapping[37] =  commander.swapPanel;     //Arrow Left
   key_mapping[39] =  commander.swapPanel;     //Arrow Right
   key_mapping[13] =  commander.delve;         //enter
+  key_mapping[32] =  commander.delve;         //space bar
+  key_mapping[33] =  commander.pageUp;        //page up
+  key_mapping[34] =  commander.pageDown;      //page down
   key_mapping[40] =  commander.down;          //Arrow Down
   key_mapping[38] =  commander.up;            //Arrow Up
   key_mapping[36] =  commander.home;          //Home key
@@ -78,6 +86,3 @@
     escape_mapping[counter] = (112-49)+counter; //1 ->F1 till 9->F9
   escape_mapping[48] = 121; //0 -> F10 does not follow the pattern
   escape_mapping[27] = 27; //0 -> F10 does not follow the pattern
-
-
-
