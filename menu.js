@@ -74,7 +74,7 @@ menu.init = function()
   menu.left    = { caption : "Left"    , indent : 2  , items : menu.itemize( 2 , "&List,&Info,&Tree,_,Sort by &Date,&Sort by Length,Sort &Alphabetically,_,&Filter|/,Select|*,_,&Rescan|C-r" ) };
   menu.file    = { caption : "File"    , indent : 12 , items : menu.itemize( 12 , "&Help|F1,Mirror|F2,View|F3,Edit|F4,Copy|F5,Move|F6,Create Folder |F7,Delete|F8,Quit|F10,_,Move up|+,Move down|-,Select|*,Filter|/" ) };
   menu.command = { caption : "Command" , indent : 21 , items : menu.itemize( 21 , "&Search,S&wap panels" ) };
-  menu.options = { caption : "Options" , indent : 33 , items : menu.itemize( 33 ,"&Learn Keys" ) };
+  menu.options = { caption : "Options" , indent : 33 , items : menu.itemize( 33 ,"&No Options Yet" ) };
   menu.right   = { caption : "Right"    , indent : 45 , items : menu.itemize( 45 , "&List,&Info,&Tree,_,Sort by &Date,&Sort by Length,Sort &Alphabetically,_,&Filter|/,Select|*,_,&Rescan|C-r" ) };
 
   menu.left.left  = menu.right;
@@ -199,7 +199,7 @@ menu.exit = function()
   key_mapping = commander.key_mapping;
 }
 
-menu.dispatch = function( s )
+menu.dispatch = function( event )
 {
   var command = menuItem = menu.current.items[menu.selection].text;
 
@@ -234,6 +234,12 @@ menu.dispatch = function( s )
     var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
 
     panel.info = false;
+
+    if( panel.id == "tree" )
+    {
+      var id  = document.getElementById( panel.prefix + panel.selected ).commander.id;
+      commander.select( id );      
+    }
   }
 
 
@@ -241,21 +247,21 @@ menu.dispatch = function( s )
   {
     var id = (menu.current.caption == "Left")?commander.left.id:commander.right.id;
 
-    sortBookmarks( id , null , sortByDateFunction )
+    sortBookmarks( id , null , sortByDateFunction , event.ctrlKey )
   }
 
   if( command == "Sort Alphabetically" )
   {
     var id = (menu.current.caption == "Left")?commander.left.id:commander.right.id;
 
-    sortBookmarks( id , null , sortByNameFunction )
+    sortBookmarks( id , null , sortByNameFunction , event.ctrlKey )
   }
 
   if( command == "Sort by Length" )
   {
     var id = (menu.current.caption == "Left")?commander.left.id:commander.right.id;
 
-    sortBookmarks( id , null , sortByLengthFunction )
+    sortBookmarks( id , null , sortByLengthFunction , event.ctrlKey )
   }
 
   if( command == "Filter" )
@@ -306,6 +312,11 @@ menu.dispatch = function( s )
   	}
   }
 
+  if( command == "Tree" )
+  {
+    var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
+    panel.id = "tree"
+  }
 
   commander.boot();
 }
