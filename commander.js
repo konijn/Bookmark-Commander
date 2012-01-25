@@ -37,6 +37,7 @@
         commander.results = o;
         commander.setPanel( commander.left );
         commander.setPanel( commander.right );
+        //mouse.init();
       });
       return;
     }
@@ -45,6 +46,7 @@
     var panel = commander.left.active ? commander.left : commander.right;
     commander.setPanel( panel );
     commander.setPanel( panel.other );
+    //mouse.init();
   }
 
   /* Core wild magic */
@@ -175,15 +177,15 @@
       //Highlight filter if any
       if( panelConfig.filter )
       {
-      	innerHTML = innerHTML.replaceAll( panelConfig.filter , "\u2604" );
-      	innerHTML = innerHTML.replaceAll( "\u2604" , "<span class='paars'>" + panelConfig.filter + "</span>" );
+        innerHTML = innerHTML.replaceAll( panelConfig.filter , "\u2604" );
+        innerHTML = innerHTML.replaceAll( "\u2604" , "<span class='paars'>" + panelConfig.filter + "</span>" );
       }
 
       //Highlight filter if any
       if( panelConfig.selector )
       {
-      	if( ( innerHTML.has( panelConfig.selector ) || panelConfig.selector == "*" ) && child.title != ".." )
-      		innerHTML = "<span class='yellow'>" + innerHTML + "</span>";
+        if( ( innerHTML.has( panelConfig.selector ) || panelConfig.selector == "*" ) && child.title != ".." )
+          innerHTML = "<span class='yellow'>" + innerHTML + "</span>";
       }
 
       //Set the final innerHTML only now to prevent potential flickering
@@ -830,34 +832,34 @@
   /* FILTER */
   commander.filter = function(panel)
   {
-  	if(!panel)
-  		panel = commander.left.active ? commander.left : commander.right;
+    if(!panel)
+      panel = commander.left.active ? commander.left : commander.right;
 
-  	panel.filter = prompt("Enter filter string", panel.filter ); //"" is the default
+    panel.filter = prompt("Enter filter string", panel.filter ); //"" is the default
 
-  	panel.filter.remove("*");
+    panel.filter.remove("*");
 
-  	commander.draw();
+    commander.draw();
   }
 
   /* SELECT */
   commander.selector = function(panel)
   {
     //Panel will actually be an event when called via the '*' key
-  	if(panel instanceof jQuery.Event)
-  		panel = commander.left.active ? commander.left : commander.right;
+    if(panel instanceof jQuery.Event)
+      panel = commander.left.active ? commander.left : commander.right;
 
-  	if(!panel.selector)
+    if(!panel.selector)
     {
-  		panel.selector = "*";
+      panel.selector = "*";
     }
     else if ( panel.selector == "*")
     {
       panel.selector = "";
     }
 
-  	panel.selector = prompt("Select", panel.selector ); //"" is the default
+    panel.selector = prompt("Select", panel.selector ); //"" is the default
 
-  	commander.draw();
+    commander.draw();
   }
 

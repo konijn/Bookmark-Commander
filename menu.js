@@ -57,7 +57,7 @@ menu.itemize = function( indent , s )
 
   for( key in ta )
   {
-	//Put some indenting in place and finalize the box
+  //Put some indenting in place and finalize the box
     o[key].html = "<hidden>" + "X".repeat( indent ) + "</hidden><span class='menu'>║</span><span class='menu' id='" + key + "'> " + o[key].html + " ".repeat( o.maxText - o[key].text.length ) + o[key].key + " ".repeat( o.maxKeyText - o[key].key.length ) +"</span><span class='menu'>║</span>\n" ;
   }
 
@@ -101,45 +101,46 @@ menu.init = function()
 
 menu.show = function()
 {
-	/* This could be ruined */
-	menu.dropdown = document.getElementById( "dropdown" )
-	menu.top = document.getElementById( "menu" )
+  /* This could be ruined */
+  menu.dropdown = document.getElementById( "dropdown" )
+  menu.top = document.getElementById( "menu" )
 
-	//We are filling in a pre
-	var s = "<pre style='margin: 0px 0px 0px 0px'>\n\n";
+  //We are filling in a pre
+  var s = "<pre style='margin: 0px 0px 0px 0px'>\n\n";
 
-	//We need the top, and it needs to be indented
-	s  = s + "<hidden>" + "X".repeat( menu.current.indent ) + "</hidden>";
-	//The top
-	s  = s +  "<span class='menu'>╔" + doublebar.repeat(menu.current.items.maxText + menu.current.items.maxKeyText + 1) + "╗</span>\n";
+  //We need the top, and it needs to be indented
+  s  = s + "<hidden>" + "X".repeat( menu.current.indent ) + "</hidden>";
+  //The top
+  s  = s +  "<span class='menu'>╔" + doublebar.repeat(menu.current.items.maxText + menu.current.items.maxKeyText + 1) + "╗</span>\n";
 
-	for( key = 0 ; key <= menu.current.items.maxKey ; key++ )
-	{
-		if ( menu.current.items[key].text == "_" )
-		{
-			s = s + "<hidden>" + "X".repeat( menu.current.indent ) + "</hidden>" + "<span class='menu'>╠" + doublebar.repeat(menu.current.items.maxText + menu.current.items.maxKeyText + 1) + "╣</span>\n";
-		}
-		else
-		{
-			s = s + menu.current.items[key].html;
-		}
-	}
+  for( key = 0 ; key <= menu.current.items.maxKey ; key++ )
+  {
+    if ( menu.current.items[key].text == "_" )
+    {
+      s = s + "<hidden>" + "X".repeat( menu.current.indent ) + "</hidden>" + "<span class='menu'>╠" + doublebar.repeat(menu.current.items.maxText + menu.current.items.maxKeyText + 1) + "╣</span>\n";
+    }
+    else
+    {
+      s = s + menu.current.items[key].html;
+    }
+  }
 
-	//We need the bottom, and it needs to be indented
-	s  = s + "<hidden>" + "X".repeat( menu.current.indent ) + "</hidden>";
-	//The bottom
-	s  = s +  "<span class='menu'>╚" + doublebar.repeat(menu.current.items.maxText + menu.current.items.maxKeyText + 1) + "╝</span>\n";
-	//Close
-	s = s  + "</pre>";
+  //We need the bottom, and it needs to be indented
+  s  = s + "<hidden>" + "X".repeat( menu.current.indent ) + "</hidden>";
+  //The bottom
+  s  = s +  "<span class='menu'>╚" + doublebar.repeat(menu.current.items.maxText + menu.current.items.maxKeyText + 1) + "╝</span>\n";
+  //Close
+  s = s  + "</pre>";
 
-	//Set it
-	menu.dropdown.innerHTML = s;
-	//Show it
-	menu.dropdown.style.display = "block"
+  //Set it
+  menu.dropdown.innerHTML = s;
+  //Show it
+  menu.dropdown.style.display = "block"
 
-	//Color the name of the menu
-	menu.top.innerHTML = menu.original.replace( menu.current.caption , "<span class='fcode'>" + menu.current.caption + "</span>"     );
+  //Color the name of the menu
+  menu.top.innerHTML = menu.original.replace( menu.current.caption , "<span class='fcode'>" + menu.current.caption + "</span>"     );
 
+  //Highlight the selected menu entry
   $('#'+menu.selection).removeClass('menu').addClass('fcode');
 }
 
@@ -193,7 +194,6 @@ menu.exit = function()
 {
   document.getElementById( "dropdown" ).style.display = "none"
   document.getElementById( "menu" ).innerHTML = menu.original;
-  //document.body.innerHTML = commander.backup;
 
   commander.boot();
   key_mapping = commander.key_mapping;
@@ -207,6 +207,10 @@ menu.dispatch = function( event )
   //So no code required for Rescan since menu.exit rescans automatically
   menu.exit();
 
+  //pre-work reduces rework
+  var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
+  var id = (menu.current.caption == "Left")?commander.left.id:commander.right.id;
+
   if( command == "Help"           ) commander.help();
   if( command == "Mirror"         ) commander.equalize();
   if( command == "View"           ) commander.view();
@@ -218,11 +222,14 @@ menu.dispatch = function( event )
   if( command == "Quit"           ) commander.quit();
   if( command == "Move up"        ) commander.moveup();
   if( command == "Move Down"      ) commander.movedown();
+  if( command == "Search"         ) commander.search();
+
+  if( command == "Sort by Date" )        sortBookmarks( id , null , sortByDateFunction , event.ctrlKey )
+  if( command == "Sort Alphabetically" ) sortBookmarks( id , null , sortByNameFunction , event.ctrlKey )
+  if( command == "Sort by Length" )      sortBookmarks( id , null , sortByLengthFunction , event.ctrlKey )
 
   if( command == "Info"  )
   {
-    var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
-
     panel.other.info = false;
     panel.other.active = true;
     panel.info = true;
@@ -231,8 +238,6 @@ menu.dispatch = function( event )
 
   if( command == "List"  )
   {
-    var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
-
     panel.info = false;
 
     if( panel.id == "tree" )
@@ -242,79 +247,37 @@ menu.dispatch = function( event )
     }
   }
 
-
-  if( command == "Sort by Date" )
-  {
-    var id = (menu.current.caption == "Left")?commander.left.id:commander.right.id;
-
-    sortBookmarks( id , null , sortByDateFunction , event.ctrlKey )
-  }
-
-  if( command == "Sort Alphabetically" )
-  {
-    var id = (menu.current.caption == "Left")?commander.left.id:commander.right.id;
-
-    sortBookmarks( id , null , sortByNameFunction , event.ctrlKey )
-  }
-
-  if( command == "Sort by Length" )
-  {
-    var id = (menu.current.caption == "Left")?commander.left.id:commander.right.id;
-
-    sortBookmarks( id , null , sortByLengthFunction , event.ctrlKey )
-  }
-
-  if( command == "Filter" )
-  {
-  	var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
-
-  }
-
-  if( command == "Search" )
-  {
-  	commander.search();
-  }
-
   if( command == "Swap panels" )
   {
-  	var temp = commander.left;
-  	commander.left = commander.right;
-  	commander.right = temp;
+    var temp = commander.left;
+    commander.left = commander.right;
+    commander.right = temp;
 
     //This is unfortunate, a 'clever' hack bleeding thru
-  	commander.left.prefix = "left";
-  	commander.right.prefix = "rite";
+    commander.left.prefix = "left";
+    commander.right.prefix = "rite";
   }
 
+  /* Note the different calls according to File vs. Left/Right */
   if( command == "Filter" )
   {
-  	if (menu.current.caption == "File")
-  	{
-  		commander.filter();
-  	}
-  	else
-  	{
-  		var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
-  		commander.filter( panel );
-  	}
+    if (menu.current.caption == "File")
+      commander.filter();
+    else
+      commander.filter( panel );
   }
 
   if( command == "Select" )
   {
-  	if (menu.current.caption == "File")
-  	{
-  		commander.selector();
-  	}
-  	else
-  	{
-  		var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
-  		commander.selector( panel );
-  	}
+    if (menu.current.caption == "File")
+      commander.selector();
+    else
+      commander.selector( panel );
   }
 
   if( command == "Tree" )
   {
-    var panel = (menu.current.caption == "Left") ? commander.left : commander.right;
+    panel.info = false;
     panel.id = "tree"
   }
 
