@@ -20,6 +20,7 @@
   .border   { color: rgb(192,192,192); background: rgb(0,0,128);  }
   .blue     { color: rgb(255,255,255); background: rgb(0,0,128);  }
   .menu     { color: rgb(0,0,0);       background: rgb(0,128,128);}
+  .options  { color: rgb(0,0,0);       background: rgb(192,192,192);}
   .white    { color: rgb(255,255,255); background: rgb(0,128,128);}
   .selected { color: rgb(0,0,0);       background: rgb(0,128,128);}
   .paars    { color: rgb(223,  0,255);                            }
@@ -56,10 +57,60 @@
     0%     { opacity: 0 } 50% { opacity: 0 }
     50.01% { opacity: 1 } 100% { opacity: 1 }
   }
+/*
+    @-webkit-keyframes underblink {
+    0%     { color: green; }
+    50%    { color: green; }
+    50.01% { color: red; }
+    100%   { color: red; }
+  }
+
+
+
+  @-webkit-keyframes underblink {
+    0%     { border-bottom-width: 0px; }
+    50%    { border-bottom-width: 0px; }
+    50.01% { border-bottom-width: 1px; }
+    100%   { border-bottom-width: 1px; }
+  }
+*/
+
+    @-webkit-keyframes underblink {
+    0%     { border-bottom-color: silver; }
+    50%    { border-bottom-color: silver; }
+    50.01% { border-bottom-color: black; }
+    100%   { border-bottom-color: black; }
+  }
+
+
+/*
+  @-webkit-keyframes underblink {
+    0%     { text-decoration: none;opacity: 0:color :orange; }
+    50%    { text-decoration: none;opacity: 0;color:green; }
+    50.01% { text-decoration: underline;opacity: 1; }
+    100%   { text-decoration: underline;opacity: 1; }
+  }
+*/
 
   blink {
     -webkit-animation: blink 0.7s infinite linear alternate;
     -webkit-font-smoothing: antialiased;
+  }
+
+  .blink {
+    -webkit-animation: blink 0.7s infinite linear alternate;
+    -webkit-font-smoothing: antialiased;
+	color: orange;
+  }
+
+  .underblink {
+    -webkit-animation: underblink 0.7s infinite linear alternate;
+    -webkit-font-smoothing: antialiased;
+    display:inline-block;
+    border-bottom-color:black;
+    border-bottom-width:2px;
+    border-bottom-style:solid;
+	  z-index:4;
   }
 
   hidden {
