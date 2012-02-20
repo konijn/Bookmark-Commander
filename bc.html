@@ -32,6 +32,7 @@
   <script type="text/javascript" src="editor.js"></script>
   <script type="text/javascript" src="menu.js"></script>
   <script type="text/javascript" src="mouse.js"></script>
+  <script type="text/javascript" src="options.js"></script>
   <!-- Keymaps must be the last non-3rd-party script, it modifies the var in the prior scripts -->
   <script type="text/javascript" src="keymaps.js"></script>
 
@@ -120,6 +121,22 @@
     </pre>
   </div>
 
+<!-- This gets later enhanced in options.js , this looks terible on Mac and good on Windows, I know..-->
+  <div id="options" class="options" style="position: absolute; top: 8px ; left : 0px;margin: 0px 0px 0px 0px; display: none;z-index:4"><pre style='margin: 0px 0px 0px 0px'
+>╔═ Options ══════════════════════════════════╗
+║                   Always   Ask   Ctrl Key  ║
+║ Recursive Sorting  ( )     ( )      (x)    ║
+║ Recursive Copying  ( )     ( )      (x)    ║
+╠════════════════════════════════════════════╣
+║ Use Trashcan       [ ]                     ║
+╠════════════════════════════════════════════╣
+║          [&lt;OK&gt;]         [ Cancel ]         ║
+╚════════════════════════════════════════════╝</pre></div>
+
+<!-- the abused glass pane to block events -->
+<div id="glasspane" style="position:absolute; display: none; z-index=3; "></div>
+
+
 </body>
 
 <script>
@@ -135,6 +152,7 @@
       //Replace ═ with =, cause silly Mac OS
       $("#h2").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
       $("#h3").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
+      $("#options").text( function(index, oldtext) { return oldtext.replace( /═/gi , "=" ) });
     }
 
     /* most anything happens here, definitely all the stuff with keymaps */
