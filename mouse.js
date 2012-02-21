@@ -17,7 +17,7 @@ mouse.init = function(){
   {
     $("#left"+i).live( "click" ,
       function(e)
-      { 
+      {
         if( menu.dropdown.style.display == "block" ) menu.exit();
         var n = e.srcElement.id.substring(4)
         if( commander.left.active && commander.left.selected == n )
@@ -26,9 +26,9 @@ mouse.init = function(){
           { commander.left.info = false; commander.left.active = true; commander.right.active = false; commander.left.selected = n; commander.draw(); }
       }
     )
-    $("#rite"+i).live( "click" , 
+    $("#rite"+i).live( "click" ,
       function(e)
-      { 
+      {
         if( menu.dropdown.style.display == "block" ) menu.exit();
         var n = e.srcElement.id.substring(4)
         if( commander.right.active && commander.right.selected == n )
@@ -42,7 +42,7 @@ mouse.init = function(){
   //Do the top menu
   //This is a fairly nasty piece of hacking ;\
   //To redeem myself I will make it i18n friendly
-  
+
   bindTopMenu( menu.left );
   bindTopMenu( menu.file );
   bindTopMenu( menu.command );
@@ -57,7 +57,7 @@ mouse.init = function(){
 
   for( i = 0 ; i < panelheight ; i ++ )
   {
-    $("#"+i).live( "click" , 
+    $("#"+i).live( "click" ,
       function(e)
       {
         var n = e.srcElement.id*1;
@@ -69,6 +69,13 @@ mouse.init = function(){
     )
   }
 
+  //Do the glasspane
+  $("#glasspane").live( "click" ,
+    function(e)
+    {
+    	return true;
+    }
+  )
 }
 
 /* If we ever get enough user feedback, we might change this

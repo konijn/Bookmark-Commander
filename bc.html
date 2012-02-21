@@ -51,7 +51,8 @@
 
   </head>
 
-<body style="font-family: Vera;" onmousewheel="return mouse.scroll(evt)"><pre><script>
+<body style="font-family: Vera;" onmousewheel="return mouse.scroll(evt)">
+<div id="glasspane" style="position:absolute; display: none; z-index:3;width:100%;height:100%"></div><pre><script>
 
   /* These codes were retrieved from http://www.utf8-chartable.de/unicode-utf8-table.pl ( box drawing )
    ┌─┬─┐  ╔═╦═╗
@@ -122,6 +123,7 @@
   </div>
 
 <!-- This gets later enhanced in options.js , this looks terible on Mac and good on Windows, I know..-->
+<!-- Also, changing this MUST be followed by reviewing options.init() in options.js -->
   <div id="options" class="options" style="position: absolute; top: 8px ; left : 0px;margin: 0px 0px 0px 0px; display: none;z-index:4"><pre style='margin: 0px 0px 0px 0px'
 >╔═ Options ══════════════════════════════════╗
 ║                   Always   Ask   Ctrl Key  ║
@@ -134,8 +136,6 @@
 ╚════════════════════════════════════════════╝</pre></div>
 
 <!-- the abused glass pane to block events -->
-<div id="glasspane" style="position:absolute; display: none; z-index=3; "></div>
-
 
 </body>
 
